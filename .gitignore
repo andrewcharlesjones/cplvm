@@ -3,5 +3,10 @@ __pycache__/
 *.npy
 *.ipynb
 *.pyc
+*.png
+*.pdf
+*.svg
+*.sh
 .ipynb_checkpoints/
 .DS_Store
+job.slurm.*

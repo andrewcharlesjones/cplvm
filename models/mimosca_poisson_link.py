@@ -17,7 +17,6 @@ from scipy.stats import multivariate_normal
 
 tf.enable_v2_behavior()
 
-plt.style.use("ggplot")
 warnings.filterwarnings('ignore')
 
 NUM_VI_ITERS = 500
@@ -40,7 +39,7 @@ def clvm(data_dim, num_datapoints, counts_per_cell, dummy, is_H0=False):
                                         scale=np.std(np.log(counts_per_cell)) * tf.ones([1, num_datapoints]),
                                         name="size_factor")
 
-    data = yield tfd.Poisson(rate=tf.math.multiply(tf.math.exp(tf.math.add(tf.matmul(beta, dummy), mu)), size_factor),
+    data = yield tfd.Poisson(rate=tf.math.exp(tf.matmul(beta, dummy) + mu + tf.math.log(size_factor)),
                                           name="x")
     # import ipdb
     # ipdb.set_trace()
@@ -203,8 +202,8 @@ def fit_model(X, Y, compute_size_factors=True, is_H0=False, sf_x=None, sf_y=None
     # # plt.plot(losses)
     # # plt.show()
 
-    import ipdb
-    ipdb.set_trace()
+    # import ipdb
+    # ipdb.set_trace()
 
     if is_H0:
         return_dict = {

@@ -17,7 +17,6 @@ from scipy.stats import multivariate_normal
 
 tf.enable_v2_behavior()
 
-plt.style.use("ggplot")
 warnings.filterwarnings('ignore')
 
 NUM_VI_ITERS = 1000

@@ -17,7 +17,6 @@ from scipy.stats import multivariate_normal
 
 tf.enable_v2_behavior()
 
-plt.style.use("ggplot")
 warnings.filterwarnings('ignore')
 
 NUM_VI_ITERS = 1000
@@ -43,17 +42,24 @@ def clvm(data_dim, latent_dim_shared, latent_dim_target, num_datapoints_x, num_d
     size_factor_y = yield tfd.LogNormal(loc=np.mean(np.log(counts_per_cell_Y)) * tf.ones([1, num_datapoints_y]),
                                         scale=np.std(np.log(counts_per_cell_Y)) * tf.ones([1, num_datapoints_y]),
                                         name="size_factor_y")
+    # size_factor_x = yield tfd.Normal(loc=np.mean(counts_per_cell_X) * tf.ones([1, num_datapoints_x]),
+    #                                     scale=np.std(counts_per_cell_X) * tf.ones([1, num_datapoints_x]),
+    #                                     name="size_factor_x")
+
+    # size_factor_y = yield tfd.Normal(loc=np.mean(counts_per_cell_Y) * tf.ones([1, num_datapoints_y]),
+    #                                     scale=np.std(counts_per_cell_Y) * tf.ones([1, num_datapoints_y]),
+    #                                     name="size_factor_y")
 
     s = yield tfd.Normal(loc=tf.zeros([data_dim, latent_dim_shared]),
                  scale=tf.ones([data_dim, latent_dim_shared]),
                  name="w")
 
     zx = yield tfd.Normal(loc=tf.zeros([latent_dim_shared, num_datapoints_x]),
-                   scale=tf.math.multiply(tf.ones([latent_dim_shared, num_datapoints_x]), 1),
+                   scale=tf.ones([latent_dim_shared, num_datapoints_x]) * 0.01,
                    name="zx")
 
     zy = yield tfd.Normal(loc=tf.zeros([latent_dim_shared, num_datapoints_y]),
-                   scale=tf.math.multiply(tf.ones([latent_dim_shared, num_datapoints_y]), 1),
+                   scale=tf.ones([latent_dim_shared, num_datapoints_y]) * 0.01,
                    name="zy")
 
     # Null
@@ -73,13 +79,18 @@ def clvm(data_dim, latent_dim_shared, latent_dim_target, num_datapoints_x, num_d
                    name="w")
 
         ty = yield tfd.Normal(loc=tf.zeros([latent_dim_target, num_datapoints_y]),
-                   scale=tf.math.multiply(tf.ones([latent_dim_target, num_datapoints_y]), 1),
+                   scale=tf.ones([latent_dim_target, num_datapoints_y]) * 0.01,
                    name="ty")
 
-        x = yield tfd.Poisson(rate=tf.math.multiply(tf.math.exp(tf.math.add(tf.math.multiply(tf.matmul(s, zx), 1), mu_x) + np.log(data_dim)), size_factor_x / data_dim),
+        # x = yield tfd.Poisson(rate=tf.math.multiply(tf.math.exp(tf.math.add(tf.math.multiply(tf.matmul(s, zx), 1), mu_x)), size_factor_x), # / data_dim),
+        #                  name="x")
+
+        # y = yield tfd.Poisson(rate=tf.math.multiply(tf.math.exp(tf.math.add(tf.matmul(s, zy) + tf.matmul(w, ty), mu_y)), size_factor_y), # / data_dim),
+        #                      name="y")
+        x = yield tfd.Poisson(rate=tf.math.exp(tf.matmul(s, zx) + mu_x + tf.math.log(size_factor_x)),
                          name="x")
 
-        y = yield tfd.Poisson(rate=tf.math.multiply(tf.math.exp(tf.math.add(tf.matmul(s, zy) + tf.matmul(w, ty), mu_y) + np.log(data_dim)), size_factor_y / data_dim),
+        y = yield tfd.Poisson(rate=tf.math.exp(tf.matmul(s, zy) + tf.matmul(w, ty) + mu_y + tf.math.log(size_factor_y)),
                              name="y")
 
 
@@ -90,9 +101,9 @@ def fit_model(X, Y, latent_dim_shared, latent_dim_target, compute_size_factors =
     num_datapoints_x, num_datapoints_y=X.shape[1], Y.shape[1]
 
     if compute_size_factors:
-        counts_per_cell_X=np.sum(X, axis = 0)
+        counts_per_cell_X=np.mean(X, axis = 0)
         counts_per_cell_X=np.expand_dims(counts_per_cell_X, 0)
-        counts_per_cell_Y=np.sum(Y, axis = 0)
+        counts_per_cell_Y=np.mean(Y, axis = 0)
         counts_per_cell_Y=np.expand_dims(counts_per_cell_Y, 0)
     else:
         counts_per_cell_X=1.0
@@ -222,6 +233,8 @@ def fit_model(X, Y, latent_dim_shared, latent_dim_target, compute_size_factors =
             'loss_trace': losses,
             'qs_mean': qs_mean,
             'qw_mean': qw_mean,
+            'qmu_x_mean': qmu_x_mean,
+            'qmu_y_mean': qmu_y_mean,
             'qzx_mean': qzx_mean,
             'qzy_mean': qzy_mean,
             'qty_mean': qty_mean,
