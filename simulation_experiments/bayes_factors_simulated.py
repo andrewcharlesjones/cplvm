@@ -163,7 +163,7 @@ if __name__ == "__main__":
         sns.boxplot(np.arange(3), [bfs_control, bfs_shuffled, bfs_experiment])
         plt.title("Global Bayes factors")
         plt.xticks(np.arange(3), labels=[
-                   "Negative\ncontrol\ndata", "Shuffled\nlabels", "Stimulated\ndata"])
+                   "Negative\ncontrol\ndata", "Shuffled\nlabels", "Treatment\ndata"])
         plt.ylabel("log(BF)")
         plt.tight_layout()
         plt.savefig("./out/evidences_simulated_data.png")
