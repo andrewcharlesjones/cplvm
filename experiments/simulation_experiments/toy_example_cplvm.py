@@ -1,6 +1,6 @@
 import ipdb
 import sys
-sys.path.append("../models")
+sys.path.append("../../models")
 from clvm_tfp_poisson import fit_model as fit_clvm_nonnegative
 from clvm_tfp_poisson_link import fit_model as fit_clvm_link
 import matplotlib.pyplot as plt
@@ -64,6 +64,8 @@ xlims = np.array(axes.get_xlim())
 x_vals = np.linspace(xlims[0], xlims[1], 100)
 y_vals = W_slope * x_vals + W_intercept
 plt.plot(x_vals, y_vals, '--', label="W", color="red", linewidth=3)
+plt.xlabel("Gene 1")
+plt.ylabel("Gene 2")
 plt.legend(prop={'size': 20})
 
 plt.title("PCA")
@@ -71,7 +73,7 @@ plt.title("PCA")
 
 ############ CPCA ############
 
-cpca = CPCA(gamma=0.7, n_components=1)
+cpca = CPCA(gamma=200, n_components=1)
 cpca.fit((Y - Y.mean(0)).T, (X - X.mean(0)).T)
 
 plt.subplot(142)
@@ -92,6 +94,8 @@ xlims = np.array(axes.get_xlim())
 x_vals = np.linspace(xlims[0], xlims[1], 100)
 y_vals = W_slope * x_vals + W_intercept
 plt.plot(x_vals, y_vals, '--', label="W", color="red", linewidth=3)
+plt.xlabel("Gene 1")
+plt.ylabel("Gene 2")
 plt.legend(prop={'size': 20})
 
 plt.title("CPCA")
@@ -99,7 +103,7 @@ plt.title("CPCA")
 
 ############ PCPCA ############
 
-pcpca = PCPCA(gamma=0.7, n_components=1)
+pcpca = PCPCA(gamma=200, n_components=1)
 pcpca.fit((Y - Y.mean(0)).T, (X - X.mean(0)).T)
 
 plt.subplot(143)
@@ -120,9 +124,12 @@ xlims = np.array(axes.get_xlim())
 x_vals = np.linspace(xlims[0], xlims[1], 100)
 y_vals = W_slope * x_vals + W_intercept
 plt.plot(x_vals, y_vals, '--', label="W", color="red", linewidth=3)
+plt.xlabel("Gene 1")
+plt.ylabel("Gene 2")
 plt.legend(prop={'size': 20})
 
 plt.title("PCPCA")
+# plt.show()
 
 
 ############ CPLVM ############
@@ -164,6 +171,8 @@ xlims = np.array(axes.get_xlim())
 x_vals = np.linspace(xlims[0], xlims[1], 100)
 y_vals = W_slope * x_vals
 plt.plot(x_vals, y_vals, '--', label="W", color="red", linewidth=3)
+plt.xlabel("Gene 1")
+plt.ylabel("Gene 2")
 
 
 plt.legend(prop={'size': 20})

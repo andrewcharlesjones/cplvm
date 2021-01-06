@@ -21,7 +21,7 @@ from tensorflow_probability import bijectors as tfb
 from cai2013_test import cai_test
 
 import sys
-sys.path.append("../models")
+sys.path.append("../../models")
 
 from clvm_tfp_poisson import fit_model as fit_clvm
 from clvm_tfp_poisson import clvm
@@ -153,5 +153,5 @@ if __name__ == "__main__":
         plt.savefig("./out/cai_roc_curve_p{}.png".format(data_dim))
         # plt.close()
         # plt.show()
-    import ipdb; ipdb.set_trace()
+    # import ipdb; ipdb.set_trace()
 

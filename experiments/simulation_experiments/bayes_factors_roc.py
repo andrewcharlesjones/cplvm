@@ -1,6 +1,3 @@
-import functools
-import warnings
-
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
@@ -10,13 +7,6 @@ from scipy.stats import poisson
 from scipy.special import logsumexp
 from sklearn.metrics import roc_curve
 from sklearn.metrics import roc_auc_score
-
-
-import tensorflow.compat.v2 as tf
-import tensorflow_probability as tfp
-
-from tensorflow_probability import distributions as tfd
-from tensorflow_probability import bijectors as tfb
 
 import sys
 sys.path.append("../models")
