@@ -1,7 +1,7 @@
 import matplotlib
 
-import sys
-sys.path.append("../../cplvm")
+# import sys
+# sys.path.append("../../cplvm")
 from cplvm import CPLVM
 # from clvm_tfp_poisson import clvm
 # from clvm_tfp_poisson import fit_model as fit_clvm
