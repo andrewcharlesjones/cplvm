@@ -7,7 +7,7 @@ The accompanying paper can be found here: XXX.
 
 ## Installation
 
-After cloning this repo, navigate to its directory, and run the following command.
+Run the following commands in a terminal to install the package.
 ```
 git clone git@github.com:andrewcharlesjones/cplvm.git
 cd cplvm
@@ -20,3 +20,4 @@ from cplvm import CPLVM
 ```
 ## Example
 
+![toyexample](.experiments/simulation_experiments/toy_example/out/toy_example.png)
