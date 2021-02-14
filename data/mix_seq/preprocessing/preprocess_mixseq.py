@@ -13,7 +13,7 @@ NUM_GENES = 500
 data_dmso = mmread(pjoin(DATA_DIR, "DMSO_24hr_expt1/matrix.mtx"))
 barcodes_dmso = pd.read_table(pjoin(DATA_DIR, "DMSO_24hr_expt1/barcodes.tsv"), header=None)
 classifications_dmso = pd.read_csv(pjoin(DATA_DIR, "DMSO_24hr_expt1/classifications.csv"))
-# import ipdb; ipdb.set_trace()
+classifications_dmso['cell_line'] = np.array([x.split("_")[0] for x in classifications_dmso.singlet_ID.values])
 gene_names_dmso = pd.read_table(pjoin(DATA_DIR, "DMSO_24hr_expt1/genes.tsv"), header=None)
 data_dense_dmso = pd.DataFrame(data_dmso.toarray() , columns=barcodes_dmso.iloc[:, 0].values, index=gene_names_dmso.iloc[:, 0].values)
 
@@ -25,8 +25,6 @@ classifications_nutlin = pd.read_csv(pjoin(DATA_DIR, "Idasanutlin_24hr_expt1/cla
 classifications_nutlin['cell_line'] = np.array([x.split("_")[0] for x in classifications_nutlin.singlet_ID.values])
 gene_names_nutlin = pd.read_table(pjoin(DATA_DIR, "Idasanutlin_24hr_expt1/genes.tsv"), header=None)
 data_dense_nutlin = pd.DataFrame(data_nutlin.toarray() , columns=barcodes_nutlin.iloc[:, 0].values, index=gene_names_nutlin.iloc[:, 0].values)
-
-data_dense_dmso = data_dense_dmso
 
 print("Loaded {} DMSO cells and {} nutlin cells".format(data_dense_dmso.shape[1], data_dense_nutlin.shape[1]))
 
@@ -88,6 +86,8 @@ data_dense_nutlin_variable = data_dense_nutlin.transpose()[genes_sorted]
 ### Get TP53 mutation data ###
 mutation_data = pd.read_csv("/Users/andrewjones/Downloads/TP53 Gene Effect (CERES) CRISPR (Avana) Public 20Q3.csv")
 
+
+## Nutlin
 p53_mutations = []
 for curr_cl in classifications_nutlin.cell_line.values:
     if curr_cl not in mutation_data['Cell Line Name'].unique():
@@ -101,7 +101,23 @@ assert p53_mutations.shape[0] == data_dense_nutlin_variable.shape[0]
 
 p53_mutations_df = pd.DataFrame(p53_mutations, index=data_dense_nutlin_variable.index.values)
 p53_mutations_df.columns = ['tp53_mutation']
-p53_mutations_df.to_csv("../data/nutlin/p53_mutations.csv")
+p53_mutations_df.to_csv("../data/nutlin/p53_mutations_nutlin.csv")
+
+## DMSO
+p53_mutations = []
+for curr_cl in classifications_dmso.cell_line.values:
+    if curr_cl not in mutation_data['Cell Line Name'].unique():
+        p53_mutations.append("NotAvailable")
+    else:
+        p53_mutations.append(mutation_data[mutation_data['Cell Line Name'] == curr_cl]['TP53 Mutations'].values[0])
+        
+p53_mutations = np.array(p53_mutations)
+
+assert p53_mutations.shape[0] == data_dense_dmso_variable.shape[0]
+
+p53_mutations_df = pd.DataFrame(p53_mutations, index=data_dense_dmso_variable.index.values)
+p53_mutations_df.columns = ['tp53_mutation']
+p53_mutations_df.to_csv("../data/nutlin/p53_mutations_dmso.csv")
 
 
 ### Save data ###

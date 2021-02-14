@@ -1,9 +1,12 @@
 import matplotlib
 
 import sys
-sys.path.append("../models")
+sys.path.append("../../models")
 from clvm_tfp_poisson import clvm
 from clvm_tfp_poisson import fit_model as fit_clvm
+from clvm_tfp_poisson_link import clvm  as clvm_link
+from clvm_tfp_poisson_link import fit_model as fit_clvm_link
+
 import functools
 import warnings
 
@@ -45,15 +48,19 @@ if __name__ == "__main__":
 
     actual_a, actual_b = 3, 3
 
-    NUM_REPEATS = 5
+    NUM_REPEATS = 20
     bfs_experiment = []
     bfs_control = []
     bfs_shuffled = []
+
+    bfs_experiment_cglvm = []
+    bfs_control_cglvm = []
+    bfs_shuffled_cglvm = []
     for ii in range(NUM_REPEATS):
 
         # ------- Specify model ---------
 
-        concrete_clvm_model = functools.partial(clvm,
+        concrete_clvm_model = functools.partial(clvm_link,
                                                 data_dim=data_dim,
                                                 latent_dim_shared=latent_dim_shared,
                                                 latent_dim_target=latent_dim_target,
@@ -65,18 +72,125 @@ if __name__ == "__main__":
 
         model = tfd.JointDistributionCoroutineAutoBatched(concrete_clvm_model)
 
-        deltax, sf_x, sf_y, s, zx, zy, w, ty, X_sampled, Y_sampled = model.sample()
+        # deltax, sf_x, sf_y, s, zx, zy, w, ty, X_sampled, Y_sampled = model.sample()
+        mu_x, mu_y, s, zx, zy, w, ty, X_sampled, Y_sampled = model.sample()
 
         X, Y = X_sampled.numpy(), Y_sampled.numpy()
+
+        # plt.figure(figsize=(21, 9))
+        # plt.subplot(231)
+        # plt.hist(Y[:, 0])
+        # plt.subplot(232)
+        # plt.hist(Y[:, 100])
+        # plt.subplot(233)
+        # plt.hist(Y[:, 199])
+        # plt.subplot(234)
+        # plt.hist(Y[:, 50])
+        # plt.subplot(235)
+        # plt.hist(Y[:, 150])
+        # plt.subplot(236)
+        # plt.hist(Y[:, 25])
+        # plt.show()
+
+        # import ipdb; ipdb.set_trace()
 
 
         ########## "Treatment" data ##########
 
         # Run H0 and H1 models on data
-        H1_results = fit_clvm(
-            X, Y, latent_dim_shared, latent_dim_target, compute_size_factors=True, is_H0=False)
-        H0_results = fit_clvm(
-            X, Y, latent_dim_shared, latent_dim_target, compute_size_factors=True, is_H0=True)
+        # H1_results = fit_clvm(
+        #     X, Y, latent_dim_shared, latent_dim_target, compute_size_factors=True, is_H0=False)
+        # H0_results = fit_clvm(
+        #     X, Y, latent_dim_shared, latent_dim_target, compute_size_factors=True, is_H0=True)
+
+        # H1_elbo = -1 * \
+        #     H1_results['loss_trace'][-1].numpy() / \
+        #     (num_datapoints_x + num_datapoints_y)
+
+        # H0_elbo = -1 * \
+        #     H0_results['loss_trace'][-1].numpy() / \
+        #     (num_datapoints_x + num_datapoints_y)
+
+        # curr_bf = H1_elbo - H0_elbo
+        # print("BF treatment: {}".format(curr_bf))
+        # bfs_experiment.append(curr_bf)
+
+
+        # ########## Shuffled data ##########
+        # # Shuffle background and foreground labels
+
+        # all_data = np.concatenate([X, Y], axis=1)
+        # shuffled_idx = np.random.permutation(
+        #     np.arange(num_datapoints_x + num_datapoints_y))
+        # x_idx = shuffled_idx[:num_datapoints_x]
+        # y_idx = shuffled_idx[num_datapoints_x:]
+        # X = all_data[:, x_idx]
+        # Y = all_data[:, y_idx]
+
+        # # Run H0 and H1 models on data
+
+        # H1_results = fit_clvm(
+        #     X, Y, latent_dim_shared, latent_dim_target, compute_size_factors=True, is_H0=False)
+        # H0_results = fit_clvm(
+        #     X, Y, latent_dim_shared, latent_dim_target, compute_size_factors=True, is_H0=True)
+
+        # H1_elbo = -1 * \
+        #     H1_results['loss_trace'][-1].numpy() / \
+        #     (num_datapoints_x + num_datapoints_y)
+        # H0_elbo = -1 * \
+        #     H0_results['loss_trace'][-1].numpy() / \
+        #     (num_datapoints_x + num_datapoints_y)
+
+        # curr_bf = H1_elbo - H0_elbo
+        # print("BF shuffled: {}".format(curr_bf))
+        # bfs_shuffled.append(curr_bf)
+
+
+        # ########## Negative control data ##########
+        
+        # # Simulate data from null model
+
+        # concrete_clvm_model = functools.partial(clvm,
+        #                                         data_dim=data_dim,
+        #                                         latent_dim_shared=latent_dim_shared,
+        #                                         latent_dim_target=latent_dim_target,
+        #                                         num_datapoints_x=num_datapoints_x,
+        #                                         num_datapoints_y=num_datapoints_y,
+        #                                         counts_per_cell_X=1,
+        #                                         counts_per_cell_Y=1,
+        #                                         is_H0=True)
+
+        # model = tfd.JointDistributionCoroutineAutoBatched(concrete_clvm_model)
+
+        # deltax, sf_x, sf_y, s, zx, zy, X_sampled, Y_sampled = model.sample()
+
+        # X, Y = X_sampled.numpy(), Y_sampled.numpy()
+
+        # # Run H0 and H1 models on data
+
+        # H1_results = fit_clvm(
+        #     X, Y, latent_dim_shared, latent_dim_target, compute_size_factors=True, is_H0=False)
+        # H0_results = fit_clvm(
+        #     X, Y, latent_dim_shared, latent_dim_target, compute_size_factors=True, is_H0=True)
+
+        # H1_elbo = -1 * \
+        #     H1_results['loss_trace'][-1].numpy() / \
+        #     (num_datapoints_x + num_datapoints_y)
+        # H0_elbo = -1 * \
+        #     H0_results['loss_trace'][-1].numpy() / \
+        #     (num_datapoints_x + num_datapoints_y)
+
+        # curr_bf = H1_elbo - H0_elbo
+        # print("BF negative control: {}".format(curr_bf))
+        # bfs_control.append(curr_bf)
+
+        ########## "Treatment" data CGLVM ##########
+
+        # Run H0 and H1 models on data
+        H1_results = fit_clvm_link(
+            X, Y, latent_dim_shared, latent_dim_target, compute_size_factors=False, is_H0=False)
+        H0_results = fit_clvm_link(
+            X, Y, latent_dim_shared, latent_dim_target, compute_size_factors=False, is_H0=True)
 
         H1_elbo = -1 * \
             H1_results['loss_trace'][-1].numpy() / \
@@ -88,10 +202,10 @@ if __name__ == "__main__":
 
         curr_bf = H1_elbo - H0_elbo
         print("BF treatment: {}".format(curr_bf))
-        bfs_experiment.append(curr_bf)
+        bfs_experiment_cglvm.append(curr_bf)
 
 
-        ########## Shuffled data ##########
+        # ########## Shuffled data CGLVM ##########
         # Shuffle background and foreground labels
 
         all_data = np.concatenate([X, Y], axis=1)
@@ -103,11 +217,10 @@ if __name__ == "__main__":
         Y = all_data[:, y_idx]
 
         # Run H0 and H1 models on data
-
-        H1_results = fit_clvm(
-            X, Y, latent_dim_shared, latent_dim_target, compute_size_factors=True, is_H0=False)
-        H0_results = fit_clvm(
-            X, Y, latent_dim_shared, latent_dim_target, compute_size_factors=True, is_H0=True)
+        H1_results = fit_clvm_link(
+            X, Y, latent_dim_shared, latent_dim_target, compute_size_factors=False, is_H0=False)
+        H0_results = fit_clvm_link(
+            X, Y, latent_dim_shared, latent_dim_target, compute_size_factors=False, is_H0=True)
 
         H1_elbo = -1 * \
             H1_results['loss_trace'][-1].numpy() / \
@@ -118,8 +231,7 @@ if __name__ == "__main__":
 
         curr_bf = H1_elbo - H0_elbo
         print("BF shuffled: {}".format(curr_bf))
-        bfs_shuffled.append(curr_bf)
-
+        bfs_shuffled_cglvm.append(curr_bf)
 
         ########## Negative control data ##########
         
@@ -143,10 +255,10 @@ if __name__ == "__main__":
 
         # Run H0 and H1 models on data
 
-        H1_results = fit_clvm(
-            X, Y, latent_dim_shared, latent_dim_target, compute_size_factors=True, is_H0=False)
-        H0_results = fit_clvm(
-            X, Y, latent_dim_shared, latent_dim_target, compute_size_factors=True, is_H0=True)
+        H1_results = fit_clvm_link(
+            X, Y, latent_dim_shared, latent_dim_target, compute_size_factors=False, is_H0=False)
+        H0_results = fit_clvm_link(
+            X, Y, latent_dim_shared, latent_dim_target, compute_size_factors=False, is_H0=True)
 
         H1_elbo = -1 * \
             H1_results['loss_trace'][-1].numpy() / \
@@ -157,14 +269,26 @@ if __name__ == "__main__":
 
         curr_bf = H1_elbo - H0_elbo
         print("BF negative control: {}".format(curr_bf))
-        bfs_control.append(curr_bf)
+        bfs_control_cglvm.append(curr_bf)
+        # import ipdb; ipdb.set_trace()
+        
+
+        # plt.figure(figsize=(9, 8))
+        # sns.boxplot(np.arange(3), [bfs_control, bfs_shuffled, bfs_experiment])
+        # plt.title("Global ELBO Bayes factors")
+        # plt.xticks(np.arange(3), labels=[
+        #            "Unperturbed\nnull", "Shuffled\nnull", "Perturbed"])
+        # plt.ylabel("log(EBF)")
+        # plt.tight_layout()
+        # plt.savefig("./out/evidences_simulated_data.png")
+        # plt.close()
 
         plt.figure(figsize=(9, 8))
-        sns.boxplot(np.arange(3), [bfs_control, bfs_shuffled, bfs_experiment])
-        plt.title("Global Bayes factors")
+        sns.boxplot(np.arange(3), [bfs_control_cglvm, bfs_shuffled_cglvm, bfs_experiment_cglvm])
+        plt.title("Global EBFs, CGLVM")
         plt.xticks(np.arange(3), labels=[
-                   "Negative\ncontrol\ndata", "Shuffled\nlabels", "Treatment\ndata"])
-        plt.ylabel("log(BF)")
+                   "Unperturbed\nnull", "Shuffled\nnull", "Perturbed"])
+        plt.ylabel("log(EBF)")
         plt.tight_layout()
-        plt.savefig("./out/evidences_simulated_data.png")
+        plt.savefig("./out/evidences_simulated_data_cglvm.png")
         plt.close()

@@ -19,8 +19,8 @@ plt.figure(figsize=(10, 7))
 sorted_idx = np.argsort(-np.array(treatment_bfs))[:NUM_SETS_TO_PLOT]
 treatment_bfs_to_plot = np.array(treatment_bfs)[sorted_idx]
 plt.bar(np.arange(len(treatment_bfs_to_plot)), treatment_bfs_to_plot)
-plt.title("Nutlin gene set BFs")
-plt.ylabel("log(BF)")
+plt.title("Nutlin gene set EBFs")
+plt.ylabel("log(EBF)")
 
 
 plt.xticks(np.arange(len(treatment_bfs_to_plot)), labels=gene_sets_for_plot[:len(treatment_bfs)][sorted_idx])

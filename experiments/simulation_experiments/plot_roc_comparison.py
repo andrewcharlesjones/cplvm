@@ -23,7 +23,7 @@ p_list = [10, 100, 1000]
 plt.figure(figsize=(21, 6))
 for ii, p in enumerate(p_list):
 	plt.subplot(1, 3, ii+1)
-	plt.title("n=100, p={}".format(p))
+	plt.title("n=m=100, p={}".format(p))
 
 	# Load Cai results
 	cai_stats_experiment = np.load(pjoin(DATA_DIR, "test_stats_experiment_p{}.npy".format(p)))

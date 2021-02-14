@@ -9,11 +9,20 @@ from sklearn.metrics import roc_curve
 from sklearn.metrics import roc_auc_score
 
 import sys
+# sys.path.append("../../models")
 sys.path.append("../models")
 
 from clvm_tfp_poisson import fit_model as fit_clvm
 from clvm_tfp_poisson import clvm
 from pca_poisson import fit_model as fit_pca
+
+import functools
+import warnings
+import tensorflow.compat.v2 as tf
+
+
+from tensorflow_probability import distributions as tfd
+from tensorflow_probability import bijectors as tfb
 
 import matplotlib
 font = {'size'   : 18}
@@ -24,9 +33,8 @@ matplotlib.rc('font', **font)
 # from clvm_tfp_poisson_link import clvm
 
 
-tf.enable_v2_behavior()
+# tf.enable_v2_behavior()
 
-plt.style.use("ggplot")
 warnings.filterwarnings('ignore')
 
 
@@ -92,47 +100,12 @@ if __name__ == "__main__":
 
             ### Shuffle background and foreground labels
 
-            # all_data = np.concatenate([X, Y], axis=1)
-            # shuffled_idx = np.random.permutation(np.arange(num_datapoints_x + num_datapoints_y))
-            # x_idx = shuffled_idx[:num_datapoints_x]
-            # y_idx = shuffled_idx[num_datapoints_x:]
-            # X = all_data[:, x_idx]
-            # Y = all_data[:, y_idx]
-
-            # ## Run H0 and H1 models on data
-
-            # H1_results = fit_clvm(
-            #     X, Y, latent_dim_shared, latent_dim_target, compute_size_factors=True, is_H0=False)
-            # H0_results = fit_clvm(
-            #     X, Y, latent_dim_shared, latent_dim_target, compute_size_factors=True, is_H0=True)
-
-
-            # H1_elbo = -1 * H1_results['loss_trace'][-1].numpy() / (num_datapoints_x + num_datapoints_y)
-            # H0_elbo = -1 * H0_results['loss_trace'][-1].numpy() / (num_datapoints_x + num_datapoints_y)
-
-            # curr_bf = H1_elbo - H0_elbo
-            # print("BF shuffled: {}".format(curr_bf))
-            # bfs_shuffled.append(curr_bf)
-
-
-
-            ## Simulate data from null model
-
-            concrete_clvm_model = functools.partial(clvm,
-                                                    data_dim=data_dim,
-                                                    latent_dim_shared=latent_dim_shared,
-                                                    latent_dim_target=latent_dim_target,
-                                                    num_datapoints_x=num_datapoints_x,
-                                                    num_datapoints_y=num_datapoints_y,
-                                                    counts_per_cell_X=1,
-                                                    counts_per_cell_Y=1,
-                                                    is_H0=True)
-
-            model = tfd.JointDistributionCoroutineAutoBatched(concrete_clvm_model)
-
-            deltax, sf_x, sf_y, s, zx, zy, X_sampled, Y_sampled = model.sample()
-            
-            X, Y = X_sampled.numpy(), Y_sampled.numpy()
+            all_data = np.concatenate([X, Y], axis=1)
+            shuffled_idx = np.random.permutation(np.arange(num_datapoints_x + num_datapoints_y))
+            x_idx = shuffled_idx[:num_datapoints_x]
+            y_idx = shuffled_idx[num_datapoints_x:]
+            X = all_data[:, x_idx]
+            Y = all_data[:, y_idx]
 
             ## Run H0 and H1 models on data
 
@@ -146,8 +119,43 @@ if __name__ == "__main__":
             H0_elbo = -1 * H0_results['loss_trace'][-1].numpy() / (num_datapoints_x + num_datapoints_y)
 
             curr_bf = H1_elbo - H0_elbo
-            print("BF control: {}".format(curr_bf))
+            print("BF shuffled: {}".format(curr_bf))
             bfs_shuffled.append(curr_bf)
+
+
+
+            ## Simulate data from null model
+
+            # concrete_clvm_model = functools.partial(clvm,
+            #                                         data_dim=data_dim,
+            #                                         latent_dim_shared=latent_dim_shared,
+            #                                         latent_dim_target=latent_dim_target,
+            #                                         num_datapoints_x=num_datapoints_x,
+            #                                         num_datapoints_y=num_datapoints_y,
+            #                                         counts_per_cell_X=1,
+            #                                         counts_per_cell_Y=1,
+            #                                         is_H0=True)
+
+            # model = tfd.JointDistributionCoroutineAutoBatched(concrete_clvm_model)
+
+            # deltax, sf_x, sf_y, s, zx, zy, X_sampled, Y_sampled = model.sample()
+            
+            # X, Y = X_sampled.numpy(), Y_sampled.numpy()
+
+            # ## Run H0 and H1 models on data
+
+            # H1_results = fit_clvm(
+            #     X, Y, latent_dim_shared, latent_dim_target, compute_size_factors=True, is_H0=False)
+            # H0_results = fit_clvm(
+            #     X, Y, latent_dim_shared, latent_dim_target, compute_size_factors=True, is_H0=True)
+
+
+            # H1_elbo = -1 * H1_results['loss_trace'][-1].numpy() / (num_datapoints_x + num_datapoints_y)
+            # H0_elbo = -1 * H0_results['loss_trace'][-1].numpy() / (num_datapoints_x + num_datapoints_y)
+
+            # curr_bf = H1_elbo - H0_elbo
+            # print("BF control: {}".format(curr_bf))
+            # bfs_shuffled.append(curr_bf)
 
                 
 

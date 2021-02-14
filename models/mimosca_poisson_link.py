@@ -35,14 +35,12 @@ def clvm(data_dim, num_datapoints, counts_per_cell, dummy, is_H0=False):
                                         scale=tf.ones([data_dim, 1]),
                                         name="beta")
 
-    size_factor = yield tfd.LogNormal(loc=np.mean(np.log(counts_per_cell)) * tf.ones([1, num_datapoints]),
-                                        scale=np.std(np.log(counts_per_cell)) * tf.ones([1, num_datapoints]),
-                                        name="size_factor")
+    # size_factor = yield tfd.LogNormal(loc=np.mean(np.log(counts_per_cell)) * tf.ones([1, num_datapoints]),
+    #                                     scale=np.std(np.log(counts_per_cell)) * tf.ones([1, num_datapoints]),
+    #                                     name="size_factor")
 
-    data = yield tfd.Poisson(rate=tf.math.exp(tf.matmul(beta, dummy) + mu + tf.math.log(size_factor)),
+    data = yield tfd.Poisson(rate=tf.math.exp(tf.matmul(beta, dummy) + mu), # + tf.math.log(size_factor)),
                                           name="x")
-    # import ipdb
-    # ipdb.set_trace()
 
 
 
@@ -77,23 +75,7 @@ def fit_model(X, Y, compute_size_factors=True, is_H0=False, sf_x=None, sf_y=None
         else:
             counts_per_cell = 1.0
 
-    
 
-
-    # plt.scatter(np.mean(X / X.sum(0), axis=1), np.mean(Y / Y.sum(0), axis=1))
-    # ax = plt.gca()
-    # lims = [
-    #     np.min([ax.get_xlim(), ax.get_ylim()]),  # min of both axes
-    #     np.max([ax.get_xlim(), ax.get_ylim()]),  # max of both axes
-    # ]
-
-    # # now plot both limits against eachother
-    # ax.plot(lims, lims, 'k-', alpha=0.75, zorder=0)
-    # ax.set_aspect('equal')
-    # ax.set_xlim(lims)
-    # ax.set_ylim(lims)
-    # plt.show()
-    # plt.scatter(np.mean(X / X.sum(0), axis=1), np.mean(Y / Y.sum(0), axis=1))
     
 
     # ------- Specify model ---------
@@ -117,8 +99,10 @@ def fit_model(X, Y, compute_size_factors=True, is_H0=False, sf_x=None, sf_y=None
 
     else:
 
-        def target_log_prob_fn(mu, beta, size_factor): return model.log_prob(
-            (mu, beta, size_factor, data))
+        # def target_log_prob_fn(mu, beta, size_factor): return model.log_prob(
+        #     (mu, beta, size_factor, data))
+        def target_log_prob_fn(mu, beta): return model.log_prob(
+            (mu, beta, data))
     # ------- Specify variational families -----------
 
     # mu = tf.Variable(tf.random.normal([data_dim, 1]))
@@ -174,9 +158,9 @@ def fit_model(X, Y, compute_size_factors=True, is_H0=False, sf_x=None, sf_y=None
                      scale=qbeta_stddv,
                      name="qbeta")
 
-        qsize_factor = yield tfd.LogNormal(loc=qsize_factor_mean,
-                     scale=qsize_factor_stddv,
-                     name="qsize_factor")
+        # qsize_factor = yield tfd.LogNormal(loc=qsize_factor_mean,
+        #              scale=qsize_factor_stddv,
+        #              name="qsize_factor")
 
     # Surrogate posterior that we will try to make close to p
     surrogate_posterior = tfd.JointDistributionCoroutineAutoBatched(
@@ -224,6 +208,8 @@ def fit_model(X, Y, compute_size_factors=True, is_H0=False, sf_x=None, sf_y=None
             'qmu_stddv': qmu_stddv,
             'qbeta_mean': qbeta_mean,
             'qbeta_stddv': qbeta_stddv,
+            'qsize_factor_mean': qsize_factor_mean,
+            'qsize_factor_stddv': qsize_factor_stddv
             # 'qs_mean': qs_mean,
             # 'qw_mean': qw_mean,
             # 'qzx_mean': qzx_mean,

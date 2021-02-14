@@ -21,7 +21,7 @@ from tensorflow_probability import distributions as tfd
 from tensorflow_probability import bijectors as tfb
 
 import sys
-sys.path.append("../models")
+sys.path.append("../../models")
 
 from clvm_tfp_poisson import fit_model as fit_clvm
 
@@ -89,7 +89,7 @@ if __name__ == "__main__":
 
 
     ## Run CPCA
-    cpca = CPCA(n_components=2, gamma=0.8)
+    cpca = CPCA(n_components=2, gamma=2)
     cpca_reduced_Y, cpca_reduced_X = cpca.fit_transform(y_train, x_train)
 
     # plt.scatter(cpca_reduced_Y.T[:, 0], cpca_reduced_Y.T[:, 1], c=labs)

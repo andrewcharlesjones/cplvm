@@ -29,12 +29,12 @@ p2 = ax.bar(ind + width, treatment_bfs, width)
 
 
 # ax.set_title('Scores by group and gender')
-ax.set_title("Global Bayes factors, Perturb-seq")
+ax.set_title("Global ELBO Bayes factors, Perturb-seq")
 ax.set_xticks(ind + width / 2)
 ax.set_xticklabels(gene_names_so_far[:N], size=20)
 
 ax.legend((p1[0], p2[0]), ('Control', 'Treatment'), prop={'size': 20})
-plt.ylabel("log(BF)")
+plt.ylabel("log(EBF)")
 plt.tight_layout()
 plt.savefig("./out/perturbseq_global_BFs.png")
 plt.show()
