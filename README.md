@@ -20,4 +20,4 @@ from cplvm import CPLVM
 ```
 ## Example
 
-![toyexample](.experiments/simulation_experiments/toy_example/out/toy_example.png)
+![toyexample](./experiments/simulation_experiments/toy_example/out/toy_example.png)
