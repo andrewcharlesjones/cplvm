@@ -9,6 +9,8 @@ The accompanying paper can be found here: XXX.
 
 After cloning this repo, navigate to its directory, and run the following command.
 ```
+git clone git@github.com:andrewcharlesjones/cplvm.git
+cd cplvm
 python setup.py install
 ```
 
