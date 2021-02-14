@@ -1,0 +1,13 @@
+README.md
+setup.py
+cplvm/__init__.py
+cplvm/cglvm.py
+cplvm/clvm_gaussian.py
+cplvm/cplvm.py
+cplvm/glm_poisson.py
+cplvm/lm.py
+cplvm/pca_poisson.py
+cplvm.egg-info/PKG-INFO
+cplvm.egg-info/SOURCES.txt
+cplvm.egg-info/dependency_links.txt
+cplvm.egg-info/top_level.txt

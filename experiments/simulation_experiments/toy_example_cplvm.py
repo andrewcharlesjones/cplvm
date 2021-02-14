@@ -1,8 +1,8 @@
 import ipdb
 import sys
-sys.path.append("../../models")
-from clvm_tfp_poisson import fit_model as fit_clvm_nonnegative
-from clvm_tfp_poisson_link import fit_model as fit_clvm_link
+sys.path.append("../../cplvm")
+from cplvm import CPLVM
+# from clvm_tfp_poisson_link import fit_model as fit_clvm_link
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
