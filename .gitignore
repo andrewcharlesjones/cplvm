@@ -10,4 +10,4 @@ __pycache__/
 .ipynb_checkpoints/
 .DS_Store
 job.slurm.*
-!./experiments/simulation_experiments/toy_example/out/toy_example.png
+!*toy_example.png
