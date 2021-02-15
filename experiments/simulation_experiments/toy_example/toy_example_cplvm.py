@@ -1,8 +1,4 @@
-import ipdb
-import sys
-sys.path.append("../../cplvm")
 from cplvm import CPLVM
-# from clvm_tfp_poisson_link import fit_model as fit_clvm_link
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
@@ -138,8 +134,9 @@ plt.subplot(144)
 
 
 # Fit model
-model_dict = fit_clvm_nonnegative(
-    X.T, Y.T, 1, 1, compute_size_factors=True, is_H0=False)
+cplvm = CPLVM(k_shared=2, k_foreground=1)
+
+model_dict = cplvm.fit_model_vi(X, Y, compute_size_factors=True, is_H0=False)
 
 W = np.exp(model_dict['qw_mean'].numpy() + model_dict['qw_stddv'].numpy()**2)
 S = np.exp(model_dict['qs_mean'].numpy() + model_dict['qs_stddv'].numpy()**2)
