@@ -40,7 +40,10 @@ plt.scatter(Y[m//2:, 0], Y[m//2:, 1], label="Foreground group 2", color="orange"
 plt.show()
 ```
 
-![toyexample](./experiments/simulation_experiments/toy_example/out/toy_data.png)
+<p align="center">
+	<img src="./experiments/simulation_experiments/toy_example/out/toy_data.png" />
+</p>
+<!-- ![toyexample](./experiments/simulation_experiments/toy_example/out/toy_data.png) -->
 
 Now, we fit the CPLVM.
 
@@ -56,10 +59,10 @@ Let's inspect the fitted loadings matrices. To do this, let's take the mean of t
 
 ```python
 # Shared loadings
-S = np.exp(model_dict['qs_mean'].numpy() + model_dict['qs_stddv'].numpy()**2)
+S = np.exp(model_output['qs_mean'].numpy() + model_output['qs_stddv'].numpy()**2)
 
 # Foreground-specific loadings
-W = np.exp(model_dict['qw_mean'].numpy() + model_dict['qw_stddv'].numpy()**2)
+W = np.exp(model_output['qw_mean'].numpy() + model_output['qw_stddv'].numpy()**2)
 ```
 
 Now we can visualize each component as a 1D line.
@@ -106,11 +109,17 @@ plt.ylabel("Gene 2")
 plt.show()
 ```
 
-![toyexample](./experiments/simulation_experiments/toy_example/out/cplvm_toy.png)
+<p align="center">
+	<img src="./experiments/simulation_experiments/toy_example/out/cplvm_toy.png" />
+</p>
+<!-- ![toyexample](./experiments/simulation_experiments/toy_example/out/cplvm_toy.png) -->
 
 For context, we can visualize the analogous loadings for a suite of other related methods.
 
-![toyexample](./experiments/simulation_experiments/toy_example/out/toy_example.png)
+<p align="center">
+	<img src="./experiments/simulation_experiments/toy_example/out/toy_example.png" />
+</p>
+<!-- ![toyexample](./experiments/simulation_experiments/toy_example/out/toy_example.png) -->
 
 
 
