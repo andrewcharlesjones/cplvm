@@ -1,12 +1,5 @@
 import matplotlib
-
-# import sys
-# sys.path.append("../../cplvm")
 from cplvm import CPLVM
-# from clvm_tfp_poisson import clvm
-# from clvm_tfp_poisson import fit_model as fit_clvm
-# from clvm_tfp_poisson_link import clvm  as clvm_link
-# from clvm_tfp_poisson_link import fit_model as fit_clvm_link
 
 import functools
 import warnings

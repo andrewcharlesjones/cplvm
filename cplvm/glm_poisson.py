@@ -103,6 +103,7 @@ def fit_model(X, Y, compute_size_factors=True, is_H0=False, sf_x=None, sf_y=None
         #     (mu, beta, size_factor, data))
         def target_log_prob_fn(mu, beta): return model.log_prob(
             (mu, beta, data))
+        
     # ------- Specify variational families -----------
 
     # mu = tf.Variable(tf.random.normal([data_dim, 1]))
@@ -173,33 +174,11 @@ def fit_model(X, Y, compute_size_factors=True, is_H0=False, sf_x=None, sf_y=None
         surrogate_posterior=surrogate_posterior,
         optimizer=tf.optimizers.Adam(learning_rate=LEARNING_RATE_VI),
         num_steps=NUM_VI_ITERS)
-
-    # plt.scatter(np.squeeze(beta.numpy()), np.squeeze(qbeta_mean.numpy()))
-    # plt.show()
-
-    # d = np.log(data + 1)
-    # d = d / d.sum(0)
-    # from sklearn.linear_model import LinearRegression
-    # plt.scatter(np.squeeze(LinearRegression().fit(dummy.T, d.T).coef_), np.squeeze(qbeta_mean.numpy()))
-    # plt.show()
-
-    # # plt.plot(losses)
-    # # plt.show()
-
-    # import ipdb
     # ipdb.set_trace()
 
     if is_H0:
         return_dict = {
             'loss_trace': losses,
-            # 'qs_mean': qs_mean,
-            # 'qzx_mean': qzx_mean,
-            # 'qzy_mean': qzy_mean,
-            # 'qs_stddv': qs_stddv,
-            # 'qzx_stddv': qzx_stddv,
-            # 'qzy_stddv': qzy_stddv,
-            # 'qdelta_mean': qdelta_mean,
-            # 'qdelta_stddv': qdelta_stddv,
         }
     else:
         return_dict = {
@@ -210,18 +189,6 @@ def fit_model(X, Y, compute_size_factors=True, is_H0=False, sf_x=None, sf_y=None
             'qbeta_stddv': qbeta_stddv,
             'qsize_factor_mean': qsize_factor_mean,
             'qsize_factor_stddv': qsize_factor_stddv
-            # 'qs_mean': qs_mean,
-            # 'qw_mean': qw_mean,
-            # 'qzx_mean': qzx_mean,
-            # 'qzy_mean': qzy_mean,
-            # 'qty_mean': qty_mean,
-            # 'qs_stddv': qs_stddv,
-            # 'qw_stddv': qw_stddv,
-            # 'qzx_stddv': qzx_stddv,
-            # 'qzy_stddv': qzy_stddv,
-            # 'qty_stddv': qty_stddv,
-            # 'qdelta_mean': qdelta_mean,
-            # 'qdelta_stddv': qdelta_stddv,
         }
 
     return return_dict

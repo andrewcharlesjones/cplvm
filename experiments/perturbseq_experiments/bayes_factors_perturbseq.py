@@ -1,31 +1,17 @@
-import functools
-import warnings
-
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 import pandas as pd
 import os
-from scipy.stats import poisson
 
-import tensorflow.compat.v2 as tf
-import tensorflow_probability as tfp
-
-from tensorflow_probability import distributions as tfd
-from tensorflow_probability import bijectors as tfb
-
-import sys
 import socket
 
 if socket.gethostname() == "andyjones":
     DATA_DIR = "../../data/perturb_seq/data/targeted_genes"
-    sys.path.append("../../models")
 else:
     DATA_DIR = "../data/targeted_genes/"
-    sys.path.append("../models")
 
-from clvm_tfp_poisson import fit_model as fit_clvm
-
+from cplvm import CPLVM
 
 import matplotlib
 font = {'size': 30}
@@ -80,10 +66,10 @@ if __name__ == "__main__":
 
         curr_control_bfs = []
         for _ in range(num_null_repeats):
-            H1_results = fit_clvm(
-                X, Y, latent_dim_shared, latent_dim_target, compute_size_factors=True, is_H0=False)
-            H0_results = fit_clvm(
-                X, Y, latent_dim_shared, latent_dim_target, compute_size_factors=True, is_H0=True)
+            cplvm = CPLVM(k_shared=latent_dim_shared, k_foreground=latent_dim_foreground)
+
+            H1_results = cplvm.fit_model_vi(X, Y, compute_size_factors=True, is_H0=False)
+            H0_results = cplvm.fit_model_vi(X, Y, compute_size_factors=True, is_H0=True)
 
             H1_elbo = -1 * H1_results['loss_trace'][-1].numpy() / (X.shape[1] + Y.shape[1])
             H0_elbo = -1 * H0_results['loss_trace'][-1].numpy() / (X.shape[1] + Y.shape[1])
@@ -103,9 +89,6 @@ if __name__ == "__main__":
         X = pd.read_csv(X_fname, index_col=0).values.T
         Y = pd.read_csv(Y_fname, index_col=0).values.T
 
-
-
-
         H1_results = fit_clvm(
             X, Y, latent_dim_shared, latent_dim_target, compute_size_factors=True, is_H0=False)
         H0_results = fit_clvm(
@@ -120,24 +103,6 @@ if __name__ == "__main__":
 
         print("{} treatment BF: {}".format(gene_name, curr_treatment_bf))
 
-        # import ipdb; ipdb.set_trace()
-
-        # plt.figure(figsize=(7, 5))
-        # plt.bar(np.arange(2), [np.mean(curr_control_bfs), curr_treatment_bf], yerr=[np.std(curr_control_bfs), 0])
-        # plt.title(gene_name)
-        # plt.ylabel("ELBO")
-        # plt.xticks(np.arange(2), labels=["H0", "H1"])
-        # plt.savefig("./out/{}_bar.png".format(gene_name))
-        # plt.close()
-
-        
-
-        # plt.figure(figsize=(7, 5))
-        # sns.boxplot(np.arange(2), [control_bfs, treatment_bfs])
-        # plt.xticks(np.arange(2), labels=["Negative control", "Experiment"])
-        # plt.ylabel("log(BF)")
-        # plt.savefig("./out/plots/perturbseq_BF_comparison.png")
-        # plt.close()
 
         gene_names_so_far.append(gene_name.upper())
 
@@ -146,19 +111,12 @@ if __name__ == "__main__":
             {"gene": gene_names_so_far, "control_bf": control_bfs, "treatment_bf": treatment_bfs})
         bf_df_melted = pd.melt(bf_df, id_vars="gene")
 
-        # plt.figure(figsize=(21, 7))
-        # sns.catplot(data=bf_df_melted, x="gene", y="value", hue="variable", kind="bar")
-        # plt.tight_layout()
-        # plt.savefig("./out/plots/perturbseq_BF_by_gene.png")
-        # plt.close()
-        # import ipdb; ipdb.set_trace()
-
         N = bf_df.shape[0]
 
         fig, ax = plt.subplots(figsize=(21, 5))
 
-        ind = np.arange(N)    # the x locations for the groups
-        width = 0.35         # the width of the bars
+        ind = np.arange(N)
+        width = 0.35
         p1 = ax.bar(ind, control_bfs, width, yerr=control_bf_stds)
 
         p2 = ax.bar(ind + width, treatment_bfs, width)
@@ -169,7 +127,6 @@ if __name__ == "__main__":
         np.save("./out/ps_gene_names.npy", np.array(gene_names_so_far))
         
 
-        # ax.set_title('Scores by group and gender')
         ax.set_title("Global Bayes factors, Perturb-seq")
         ax.set_xticks(ind + width / 2)
         ax.set_xticklabels(gene_names_so_far)
@@ -179,4 +136,3 @@ if __name__ == "__main__":
         plt.tight_layout()
         plt.savefig("./out/perturbseq_global_BFs.png")
 
-        # plt.close()

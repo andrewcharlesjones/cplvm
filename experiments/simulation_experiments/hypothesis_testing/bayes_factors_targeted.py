@@ -58,10 +58,10 @@ if __name__ == "__main__":
 
 
         # Generate data
-        concrete_clvm_model = functools.partial(clvm,
+        cplvm_for_data = CPLVM(k_shared=latent_dim_shared, k_foreground=latent_dim_foreground)
+        
+        concrete_clvm_model = functools.partial(cplvm_for_data.model,
                                                 data_dim=data_dim,
-                                                latent_dim_shared=latent_dim_shared,
-                                                latent_dim_target=latent_dim_target,
                                                 num_datapoints_x=num_datapoints_x,
                                                 num_datapoints_y=num_datapoints_y,
                                                 counts_per_cell_X=1,

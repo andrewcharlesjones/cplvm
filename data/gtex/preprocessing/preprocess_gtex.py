@@ -14,7 +14,7 @@ else:
     METADATA_PATH_SAMPLE = "/tigress/BEE/gtex/dbGaP_index/v8_data_sample_annotations/GTEx_Analysis_2017-06-05_v8_Annotations_SampleAttributesDS.txt"
     METADATA_PATH_SUBJECT = "/tigress/BEE/gtex/dbGaP_index/v8_data_sample_annotations/GTEx_Analysis_2017-06-05_v8_Annotations_SubjectPhenotypesDS.txt"
 
-NUM_GENES = 200
+NUM_GENES = 500
 
 
 
@@ -59,10 +59,6 @@ expression_noheartdisease = expression_noheartdisease.transpose()
 expression_heartdisease = expression_heartdisease.fillna(0.0)
 expression_noheartdisease = expression_noheartdisease.fillna(0.0)
 
-# Remove any genes that show no expression
-# expression_heartdisease = expression_heartdisease.iloc[:, (expression_heartdisease.sum(axis=0) > 0).values]
-# expression_noheartdisease = expression_noheartdisease.iloc[:, (expression_noheartdisease.sum(axis=0) > 0).values]
-
 
 # Get variable genes only
 all_data = pd.concat([expression_heartdisease, expression_noheartdisease], axis=0)
@@ -77,8 +73,8 @@ expression_noheartdisease = expression_noheartdisease.iloc[:, top_gene_idx]
 
 
 # Save data
-expression_heartdisease.to_csv("../data/gtex_artery_expression_heartdisease.csv")
-expression_noheartdisease.to_csv("../data/gtex_artery_expression_noheartdisease.csv")
+expression_heartdisease.to_csv("../data/gtex_expression_artery_heartdisease.csv")
+expression_noheartdisease.to_csv("../data/gtex_expression_artery_noheartdisease.csv")
 
 
 import ipdb; ipdb.set_trace()

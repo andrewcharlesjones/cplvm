@@ -3,20 +3,16 @@ import numpy as np
 import seaborn as sns
 import pandas as pd
 import os
-from scipy.stats import poisson
 
-import sys
 import socket
 
 
 if socket.gethostname() == "andyjones":
     DATA_DIR = "../../perturb_seq/data/targeted_genes"
-    sys.path.append("../../models")
 else:
     DATA_DIR = "../data/targeted_genes/"
-    sys.path.append("../models")
 
-from clvm_tfp_poisson import fit_model
+from cplvm import CPLVM
 
 import matplotlib
 font = {'size': 30}
@@ -38,7 +34,7 @@ if __name__ == "__main__":
     gene_names = ["Hif1a"]
 
     latent_dim_shared = 3
-    latent_dim_target = 1
+    latent_dim_target = 3
 
     control_bfs = []
     
@@ -81,9 +77,10 @@ if __name__ == "__main__":
             X = np.concatenate([X[out_set_idx, :], X[in_set_idx, :]])
             Y = np.concatenate([Y[out_set_idx, :], Y[in_set_idx, :]])
             
+            cplvm = CPLVM(k_shared=latent_dim_shared, k_foreground=latent_dim_foreground)
 
-            H1_results = fit_model(X, Y, latent_dim_shared, latent_dim_target, compute_size_factors=True, is_H0=False, num_test_genes=0)
-            H0_results = fit_model(X, Y, latent_dim_shared, latent_dim_target, compute_size_factors=True, is_H0=False, num_test_genes=in_set_idx.shape[0])
+            H1_results = cplvm.fit_model_vi(X, Y, compute_size_factors=True, is_H0=False, num_test_genes=0)
+            H0_results = cplvm.fit_model_vi(X, Y, compute_size_factors=True, is_H0=False, num_test_genes=in_set_idx.shape[0])
 
             H1_elbo = -1 * H1_results['loss_trace'][-1].numpy() / (X.shape[1] + Y.shape[1])
             H0_elbo = -1 * H0_results['loss_trace'][-1].numpy() / (X.shape[1] + Y.shape[1])

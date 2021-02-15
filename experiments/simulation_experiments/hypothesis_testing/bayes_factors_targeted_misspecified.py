@@ -16,15 +16,7 @@ import tensorflow_probability as tfp
 from tensorflow_probability import distributions as tfd
 from tensorflow_probability import bijectors as tfb
 
-import sys
-import socket
-if socket.gethostname() == "andyjones":
-    sys.path.append("../../models")
-else:
-    sys.path.append("../models")
-
-from clvm_tfp_poisson import fit_model as fit_clvm
-from clvm_tfp_poisson import clvm
+from cplvm import CPLVM
 
 import matplotlib
 font = {'size': 30}
@@ -47,14 +39,8 @@ if __name__ == "__main__":
     gene_set_size = 25
     gene_set_indices = [np.arange(ii, ii+gene_set_size) for ii in np.arange(0, data_dim//2, gene_set_size)]
 
-    # megaset_idx = np.concatenate(gene_set_indices[:2])
-    # gene_set_indices = gene_set_indices[2:]
-    # gene_set_indices.insert(0, megaset_idx)
     stimulated_gene_set_idx = gene_set_indices[0]
     unstimulated_gene_set_idx = np.setdiff1d(np.arange(data_dim), stimulated_gene_set_idx)
-
-    # import ipdb; ipdb.set_trace()
-
 
     NUM_REPEATS = 5
     all_elbos = []
@@ -63,7 +49,9 @@ if __name__ == "__main__":
 
 
         # Generate data
-        concrete_clvm_model = functools.partial(clvm,
+        cplvm_for_data = CPLVM(k_shared=latent_dim_shared, k_foreground=latent_dim_foreground)
+
+        concrete_clvm_model = functools.partial(cplvm_for_data.model,
                                                 data_dim=data_dim,
                                                 latent_dim_shared=latent_dim_shared,
                                                 latent_dim_target=latent_dim_target,
@@ -97,16 +85,14 @@ if __name__ == "__main__":
             curr_X = np.concatenate([X[out_set_idx, :], X[in_set_idx, :]])
             curr_Y = np.concatenate([Y[out_set_idx, :], Y[in_set_idx, :]])
 
-            # import ipdb; ipdb.set_trace()
             
+            cplvm = CPLVM(k_shared=latent_dim_shared, k_foreground=latent_dim_foreground)
 
-            H1_results = fit_clvm(curr_X, curr_Y, latent_dim_shared, latent_dim_target, compute_size_factors=True, is_H0=False, num_test_genes=0)
-            H0_results = fit_clvm(curr_X, curr_Y, latent_dim_shared, latent_dim_target, compute_size_factors=True, is_H0=False, num_test_genes=in_set_idx.shape[0])
+            H1_results = cplvm.fit_model_vi(curr_X, curr_Y, compute_size_factors=True, is_H0=False, num_test_genes=0)
+            H0_results = cplvm.fit_model_vi(curr_X, curr_Y, compute_size_factors=True, is_H0=False, num_test_genes=in_set_idx.shape[0])
 
             H1_elbo = -1 * H1_results['loss_trace'][-1].numpy() / (X.shape[1] + Y.shape[1])
             H0_elbo = -1 * H0_results['loss_trace'][-1].numpy() / (X.shape[1] + Y.shape[1])
-
-            
 
             curr_treatment_bf = H1_elbo - H0_elbo
             gene_set_bfs.append(curr_treatment_bf)

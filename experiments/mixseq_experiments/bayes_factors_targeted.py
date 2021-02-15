@@ -15,16 +15,14 @@ import tensorflow_probability as tfp
 from tensorflow_probability import distributions as tfd
 from tensorflow_probability import bijectors as tfb
 
-import sys
-sys.path.append("../models")
-from clvm_tfp_poisson import fit_model
+from cplvm import CPLVM
 
 import socket
 from os.path import join as pjoin
 
 
 if socket.gethostname() == "andyjones":
-    DATA_DIR = "/Users/andrewjones/Documents/beehive/differential_covariance/mix_seq/"
+    DATA_DIR = "../../data/mix_seq/data/nutlin/"
 else:
     DATA_DIR = "../data/mix_seq/"
 
@@ -54,8 +52,6 @@ if __name__ == "__main__":
     Y_fname = pjoin(DATA_DIR, "data/nutlin/nutlin_expt1.csv")
     gene_fname = pjoin(DATA_DIR, "data/nutlin/gene_symbols.csv")
 
-    # p53_mutations = pd.read_csv("/Users/andrewjones/Documents/beehive/differential_covariance/mix_seq/data/nutlin/p53_mutations.csv", index_col=0)
-
 
     # Read in data
     X = pd.read_csv(X_fname, index_col=0)
@@ -83,9 +79,10 @@ if __name__ == "__main__":
         X = np.concatenate([X[out_set_idx, :], X[in_set_idx, :]])
         Y = np.concatenate([Y[out_set_idx, :], Y[in_set_idx, :]])
         
+        cplvm = CPLVM(k_shared=latent_dim_shared, k_foreground=latent_dim_foreground)
 
-        H1_results = fit_model(X, Y, latent_dim_shared, latent_dim_target, compute_size_factors=True, is_H0=False, num_test_genes=0)
-        H0_results = fit_model(X, Y, latent_dim_shared, latent_dim_target, compute_size_factors=True, is_H0=False, num_test_genes=in_set_idx.shape[0])
+        H1_results = cplvm.fit_model_vi(X, Y, compute_size_factors=True, is_H0=False, num_test_genes=0)
+        H0_results = cplvm.fit_model_vi(X, Y, compute_size_factors=True, is_H0=False, num_test_genes=in_set_idx.shape[0])
 
         H1_elbo = -1 * H1_results['loss_trace'][-1].numpy() / (X.shape[1] + Y.shape[1])
         H0_elbo = -1 * H0_results['loss_trace'][-1].numpy() / (X.shape[1] + Y.shape[1])
