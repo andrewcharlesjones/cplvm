@@ -12,5 +12,6 @@ __pycache__/
 job.slurm.*
 !*toy_example.png
 !*toy_data.png
+!*cplvm_toy.png
 !*toy_foreground.csv
 !*toy_background.csv

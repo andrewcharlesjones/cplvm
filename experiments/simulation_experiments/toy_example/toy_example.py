@@ -12,7 +12,7 @@ from sklearn.metrics import adjusted_rand_score, silhouette_score
 import pandas as pd
 
 import matplotlib
-font = {'size': 30}
+font = {'size': 20}
 matplotlib.rc('font', **font)
 matplotlib.rcParams['text.usetex'] = True
 
@@ -62,12 +62,131 @@ plt.ylim([-3, 47])
 plt.scatter(X[:, 0], X[:, 1], label="Background", color="gray", alpha=0.8)
 plt.scatter(Y[:m//2, 0], Y[:m//2, 1], label="Foreground group 1", color="green", alpha=0.8)
 plt.scatter(Y[m//2:, 0], Y[m//2:, 1], label="Foreground group 2", color="orange", alpha=0.8)
+plt.title("Toy data")
+plt.xlabel("Gene 1")
+plt.ylabel("Gene 2")
+plt.tight_layout()
 plt.savefig("./out/toy_data.png")
 plt.show()
 
 # Labels of the foreground clusters
 true_labels = np.zeros(m)
 true_labels[m//2:] = 1
+
+
+
+############ CPLVM ############
+
+# Fit model
+cplvm = CPLVM(k_shared=1, k_foreground=2)
+
+model_dict = cplvm.fit_model_vi(X.T, Y.T, compute_size_factors=True, is_H0=False, offset_term=False)
+
+W = np.exp(model_dict['qw_mean'].numpy() + model_dict['qw_stddv'].numpy()**2)
+S = np.exp(model_dict['qs_mean'].numpy() + model_dict['qs_stddv'].numpy()**2)
+# delta = np.exp(model_dict['qdeltax_mean'].numpy() + model_dict['qdeltax_stddv'].numpy()**2)
+
+# Plot data
+plt.figure(figsize=(7, 5))
+plt.xlim([-3, 50])
+plt.ylim([-3, 50])
+plt.scatter(X[:, 0], X[:, 1], color="gray", alpha=0.8)
+plt.scatter(Y[:m//2, 0], Y[:m//2, 1], color="green", alpha=0.8)
+plt.scatter(Y[m//2:, 0], Y[m//2:, 1], color="orange", alpha=0.8)
+
+X_mean = np.mean(X, axis=0)
+S_slope = S[1, 0] / S[0, 0]
+S_intercept = X_mean[1] - X_mean[0] * S_slope
+axes = plt.gca()
+xlims = np.array(axes.get_xlim())
+x_vals = np.linspace(xlims[0], xlims[1], 100)
+y_vals = S_slope * x_vals + S_intercept
+plt.plot(x_vals, y_vals, '--', label="S", color="black", linewidth=3)
+
+
+Y_mean = np.mean(Y, axis=0)
+
+W_slope = W[1, 0] / W[0, 0]
+W_intercept = Y_mean[1] - Y_mean[0] * W_slope
+axes = plt.gca()
+ylims = np.array(axes.get_ylim())
+y_vals = np.linspace(ylims[0], ylims[1], 100)
+y_vals = W_slope * x_vals + W_intercept
+plt.plot(x_vals, y_vals, '--', label="W1", color="red", linewidth=3)
+
+W_slope = W[1, 1] / W[0, 1]
+W_intercept = Y_mean[1] - Y_mean[0] * W_slope
+axes = plt.gca()
+ylims = np.array(axes.get_ylim())
+y_vals = np.linspace(ylims[0], ylims[1], 100)
+y_vals = W_slope * x_vals + W_intercept
+plt.plot(x_vals, y_vals, '--', label="W2", color="blue", linewidth=3)
+
+plt.title("CPLVM")
+plt.xlabel("Gene 1")
+plt.ylabel("Gene 2")
+plt.legend(prop={'size': 20})
+plt.tight_layout()
+plt.savefig("./out/cplvm_toy.png")
+plt.show()
+import ipdb; ipdb.set_trace()
+
+
+
+
+############ CGLVM ############
+
+
+# Fit model
+cglvm = CGLVM(k_shared=1, k_foreground=1)
+
+model_dict = cglvm.fit_model_vi(X.T, Y.T, compute_size_factors=True, is_H0=False)
+
+W = model_dict['qw_mean'].numpy()
+S = model_dict['qs_mean'].numpy()
+
+# Plot data
+plt.figure(figsize=(7, 5))
+plt.xlim([-3, 50])
+plt.ylim([-3, 50])
+plt.scatter(X[:, 0], X[:, 1], label="Background", color="gray", alpha=0.8)
+plt.scatter(Y[:m//2, 0], Y[:m//2, 1], label="Foreground group 1", color="green", alpha=0.8)
+plt.scatter(Y[m//2:, 0], Y[m//2:, 1], label="Foreground group 2", color="orange", alpha=0.8)
+
+X_mean = np.mean(X, axis=0)
+S_slope = S[1, 0] / S[0, 0]
+S_intercept = X_mean[1] - X_mean[0] * S_slope
+axes = plt.gca()
+xlims = np.array(axes.get_xlim())
+x_vals = np.linspace(xlims[0], xlims[1], 100)
+y_vals = S_slope * x_vals + S_intercept
+plt.plot(x_vals, y_vals, '--', label="S", color="black", linewidth=3)
+
+
+Y_mean = np.mean(Y, axis=0)
+
+W_slope = W[1, 0] / W[0, 0]
+W_intercept = Y_mean[1] - Y_mean[0] * W_slope
+axes = plt.gca()
+ylims = np.array(axes.get_ylim())
+y_vals = np.linspace(ylims[0], ylims[1], 100)
+y_vals = W_slope * x_vals + W_intercept
+plt.plot(x_vals, y_vals, '--', label="W1", color="red", linewidth=3)
+
+plt.title("CGLVM")
+plt.xlabel("Gene 1")
+plt.ylabel("Gene 2")
+plt.legend(prop={'size': 20})
+plt.tight_layout()
+plt.savefig("./out/cglvm_toy.png")
+plt.show()
+
+
+
+
+import ipdb; ipdb.set_trace()
+
+#######################################
 
 
 plt.figure(figsize=((len(METHODS)) / 2 * 7, 14))

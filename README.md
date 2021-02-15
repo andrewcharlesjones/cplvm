@@ -6,7 +6,7 @@ The accompanying paper can be found here: XXX.
 
 ## Installation
 
-Run the following commands in a terminal to install the package.
+To install the package, run the following commands in a terminal from the directory in which you want to install it.
 ```
 git clone git@github.com:andrewcharlesjones/cplvm.git
 cd cplvm
@@ -42,5 +42,82 @@ plt.show()
 
 ![toyexample](./experiments/simulation_experiments/toy_example/out/toy_data.png)
 
+Now, we fit the CPLVM.
+
+```python
+# Initialize the model
+cplvm = CPLVM(k_shared=1, k_foreground=2)
+
+# Fit model
+model_output = cplvm.fit_model_vi(X.T, Y.T, compute_size_factors=True, is_H0=False, offset_term=False)
+```
+
+Let's inspect the fitted loadings matrices. To do this, let's take the mean of the variational distribution for each component. The variational families are log-normal.
+
+```python
+# Shared loadings
+S = np.exp(model_dict['qs_mean'].numpy() + model_dict['qs_stddv'].numpy()**2)
+
+# Foreground-specific loadings
+W = np.exp(model_dict['qw_mean'].numpy() + model_dict['qw_stddv'].numpy()**2)
+```
+
+Now we can visualize each component as a 1D line.
+
+```python
+# Plot data
+plt.scatter(X[:, 0], X[:, 1], color="gray", alpha=0.8)
+plt.scatter(Y[:m//2, 0], Y[:m//2, 1], color="green", alpha=0.8)
+plt.scatter(Y[m//2:, 0], Y[m//2:, 1], color="orange", alpha=0.8)
+
+X_mean = np.mean(X, axis=0)
+Y_mean = np.mean(Y, axis=0)
+
+# Plot S
+S_slope = S[1, 0] / S[0, 0]
+S_intercept = X_mean[1] - X_mean[0] * S_slope
+axes = plt.gca()
+xlims = np.array(axes.get_xlim())
+x_vals = np.linspace(xlims[0], xlims[1], 100)
+y_vals = S_slope * x_vals + S_intercept
+plt.plot(x_vals, y_vals, '--', label="S", color="black", linewidth=3)
+
+# Plot first W component
+W_slope = W[1, 0] / W[0, 0]
+W_intercept = Y_mean[1] - Y_mean[0] * W_slope
+axes = plt.gca()
+ylims = np.array(axes.get_ylim())
+y_vals = np.linspace(ylims[0], ylims[1], 100)
+y_vals = W_slope * x_vals + W_intercept
+plt.plot(x_vals, y_vals, '--', label="W1", color="red", linewidth=3)
+
+# Plot second W component
+W_slope = W[1, 1] / W[0, 1]
+W_intercept = Y_mean[1] - Y_mean[0] * W_slope
+axes = plt.gca()
+ylims = np.array(axes.get_ylim())
+y_vals = np.linspace(ylims[0], ylims[1], 100)
+y_vals = W_slope * x_vals + W_intercept
+plt.plot(x_vals, y_vals, '--', label="W2", color="blue", linewidth=3)
+
+plt.title("CPLVM")
+plt.xlabel("Gene 1")
+plt.ylabel("Gene 2")
+plt.show()
+```
+
+![toyexample](./experiments/simulation_experiments/toy_example/out/cplvm_toy.png)
+
+For context, we can visualize the analogous loadings for a suite of other related methods.
 
 ![toyexample](./experiments/simulation_experiments/toy_example/out/toy_example.png)
+
+
+
+
+
+
+
+
+
+
