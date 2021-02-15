@@ -7,7 +7,7 @@ The accompanying paper can be found here: XXX.
 ## Installation
 
 To install the package, run the following commands in a terminal from the directory in which you want to install it.
-```
+```bash
 git clone git@github.com:andrewcharlesjones/cplvm.git
 cd cplvm
 python setup.py install
