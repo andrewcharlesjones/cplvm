@@ -2,7 +2,7 @@
 
 This repo contains models and algorithms for contrastive Poisson latent variable models (CPLVM). Given a count-based foreground dataset and a count-based backround dataset, the CPLVM is designed to find structure and variation that is enriched in the foreground relative to the background.
 
-The accompanying paper can be found here: XXX. :joy:
+The accompanying paper can be found here: XXX.
 
 ## Installation
 
@@ -43,7 +43,6 @@ plt.show()
 <p align="center">
 	<img src="./experiments/simulation_experiments/toy_example/out/toy_data.png" />
 </p>
-<!-- ![toyexample](./experiments/simulation_experiments/toy_example/out/toy_data.png) -->
 
 Now, we fit the CPLVM.
 
@@ -112,14 +111,12 @@ plt.show()
 <p align="center">
 	<img src="./experiments/simulation_experiments/toy_example/out/cplvm_toy.png" />
 </p>
-<!-- ![toyexample](./experiments/simulation_experiments/toy_example/out/cplvm_toy.png) -->
 
 For context, we can visualize the analogous loadings for a suite of other related methods.
 
 <p align="center">
 	<img src="./experiments/simulation_experiments/toy_example/out/toy_example.png" />
 </p>
-<!-- ![toyexample](./experiments/simulation_experiments/toy_example/out/toy_example.png) -->
 
 
 
