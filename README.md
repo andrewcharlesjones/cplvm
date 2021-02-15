@@ -4,6 +4,8 @@ This repo contains models and algorithms for contrastive Poisson latent variable
 
 The accompanying paper can be found here: XXX.
 
+<img src="https://latex.codecogs.com/svg.latex?O_t=\text { Onset event at time bin } t " /> 
+
 ## Installation
 
 To install the package, run the following commands in a terminal from the directory in which you want to install it.
