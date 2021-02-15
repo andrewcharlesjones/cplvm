@@ -57,12 +57,12 @@ X += 4
 X_standardized = (X - X.mean(0)) / X.std(0)
 Y_standardized = (Y - Y.mean(0)) / Y.std(0)
 
-plt.xlim([-3, 50])
-plt.ylim([-3, 50])
+plt.xlim([-3, 47])
+plt.ylim([-3, 47])
 plt.scatter(X[:, 0], X[:, 1], label="Background", color="gray", alpha=0.8)
 plt.scatter(Y[:m//2, 0], Y[:m//2, 1], label="Foreground group 1", color="green", alpha=0.8)
 plt.scatter(Y[m//2:, 0], Y[m//2:, 1], label="Foreground group 2", color="orange", alpha=0.8)
-import ipdb; ipdb.set_trace()
+plt.savefig("./out/toy_data.png")
 plt.show()
 
 # Labels of the foreground clusters

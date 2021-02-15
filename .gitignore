@@ -11,5 +11,6 @@ __pycache__/
 .DS_Store
 job.slurm.*
 !*toy_example.png
+!*toy_data.png
 !*toy_foreground.csv
 !*toy_background.csv

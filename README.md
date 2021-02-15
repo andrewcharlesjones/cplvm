@@ -19,39 +19,19 @@ from cplvm import CPLVM
 ```
 ## Example
 
-Here we show a simple example of fitting the CPLVM. First, let's generate some data that has two subgroups in the foreground. To be able to specify the covariance of Poisson-distributed data, we'll use a Gaussian copula with Poisson marginal likelihoods.
+Here we show a simple example of fitting the CPLVM. First, let's load some data that has two subgroups in the foreground. To be able to specify the covariance of Poisson-distributed data, these data were generated using a Gaussian copula with Poisson marginal likelihoods.
 
 ```python
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.stats import multivariate_normal
 
-n, m = 1000, 1000
-p = 2
+X = pd.read_csv("./data/toy/toy_background.csv", header=None).values
+Y = pd.read_csv("./data/toy/toy_foreground.csv", header=None).values
 
-# Generate latent variables
-cov_mat = np.array([
-    [2.7, 2.6],
-    [2.6, 2.7]])
-Z = multivariate_normal.rvs(mean=np.zeros(p), cov=cov_mat, size=n)
-
-# Pass through standard normal CDF
-Z_tilde = norm.cdf(Z)
-
-# Inverse of observed distribution function
-X = poisson.ppf(q=Z_tilde, mu=10)
-X += 4
-
-Z = multivariate_normal.rvs(mean=np.zeros(p), cov=cov_mat, size=m//2)
-Z_tilde = norm.cdf(Z)
-Y1 = poisson.ppf(q=Z_tilde, mu=10)
-Y1[:, 0] += 8
-
-Z = multivariate_normal.rvs(mean=np.zeros(p), cov=cov_mat, size=m//2)
-Z_tilde = norm.cdf(Z)
-Y2 = poisson.ppf(q=Z_tilde, mu=10)
-Y2[:, 1] += 8
-Y = np.concatenate([Y1, Y2], axis=0)
+n, m = X.shape[0], Y.shape[0]
+assert X.shape[1] == Y.shape[1]
+p = X.shape[1]
 
 # Plot the data
 plt.scatter(X[:, 0], X[:, 1], label="Background", color="gray", alpha=0.4)
@@ -59,5 +39,8 @@ plt.scatter(Y[:m//2, 0], Y[:m//2, 1], label="Foreground group 1", color="green",
 plt.scatter(Y[m//2:, 0], Y[m//2:, 1], label="Foreground group 2", color="orange", alpha=0.4)
 plt.show()
 ```
+
+![toyexample](./experiments/simulation_experiments/toy_example/out/toy_data.png)
+
 
 ![toyexample](./experiments/simulation_experiments/toy_example/out/toy_example.png)
