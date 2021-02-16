@@ -40,20 +40,20 @@ class CGLVM:
                      scale=tf.ones([data_dim, 1]),
                      name="mu_x")
 
-        # size_factor_x = yield tfd.LogNormal(loc=np.mean(np.log(counts_per_cell_X)) * tf.ones([1, num_datapoints_x]),
-        #                                     scale=np.std(np.log(counts_per_cell_X)) * tf.ones([1, num_datapoints_x]),
-        #                                     name="size_factor_x")
+        size_factor_x = yield tfd.LogNormal(loc=np.mean(np.log(counts_per_cell_X)) * tf.ones([1, num_datapoints_x]),
+                                            scale=np.std(np.log(counts_per_cell_X)) * tf.ones([1, num_datapoints_x]),
+                                            name="size_factor_x")
 
-        # size_factor_y = yield tfd.LogNormal(loc=np.mean(np.log(counts_per_cell_Y)) * tf.ones([1, num_datapoints_y]),
-        #                                     scale=np.std(np.log(counts_per_cell_Y)) * tf.ones([1, num_datapoints_y]),
-        #                                     name="size_factor_y")
-        # size_factor_x = yield tfd.Normal(loc=np.mean(counts_per_cell_X) * tf.ones([1, num_datapoints_x]),
-        #                                     scale=np.std(counts_per_cell_X) * tf.ones([1, num_datapoints_x]),
-        #                                     name="size_factor_x")
+        size_factor_y = yield tfd.LogNormal(loc=np.mean(np.log(counts_per_cell_Y)) * tf.ones([1, num_datapoints_y]),
+                                            scale=np.std(np.log(counts_per_cell_Y)) * tf.ones([1, num_datapoints_y]),
+                                            name="size_factor_y")
+        size_factor_x = yield tfd.Normal(loc=np.mean(counts_per_cell_X) * tf.ones([1, num_datapoints_x]),
+                                            scale=np.std(counts_per_cell_X) * tf.ones([1, num_datapoints_x]),
+                                            name="size_factor_x")
 
-        # size_factor_y = yield tfd.Normal(loc=np.mean(counts_per_cell_Y) * tf.ones([1, num_datapoints_y]),
-        #                                     scale=np.std(counts_per_cell_Y) * tf.ones([1, num_datapoints_y]),
-        #                                     name="size_factor_y")
+        size_factor_y = yield tfd.Normal(loc=np.mean(counts_per_cell_Y) * tf.ones([1, num_datapoints_y]),
+                                            scale=np.std(counts_per_cell_Y) * tf.ones([1, num_datapoints_y]),
+                                            name="size_factor_y")
 
         s = yield tfd.Normal(loc=tf.zeros([data_dim, self.k_shared]) + 0,
                      scale=tf.ones([data_dim, self.k_shared]),
@@ -70,10 +70,10 @@ class CGLVM:
         # Null
         if is_H0:
 
-            x = yield tfd.Poisson(rate=tf.math.multiply(tf.math.exp(tf.math.add(tf.math.multiply(tf.matmul(s, zx), 1), mu_x) + np.log(data_dim)), 1), #size_factor_x / data_dim),
+            x = yield tfd.Poisson(rate=tf.math.multiply(tf.math.exp(tf.math.add(tf.math.multiply(tf.matmul(s, zx), 1), mu_x) + np.log(data_dim)), size_factor_x / data_dim),
                              name="x")
 
-            y = yield tfd.Poisson(rate=tf.math.multiply(tf.math.exp(tf.math.add(tf.matmul(s, zy), mu_y) + np.log(data_dim)), 1), #size_factor_y / data_dim),
+            y = yield tfd.Poisson(rate=tf.math.multiply(tf.math.exp(tf.math.add(tf.matmul(s, zy), mu_y) + np.log(data_dim)), size_factor_y / data_dim),
                                  name="y")
 
             # x = yield tfd.Poisson(rate=tf.math.multiply(tf.math.exp(tf.math.add(tf.math.multiply(tf.matmul(s, zx), 1), mu_x) + np.log(data_dim)), 1),
@@ -93,10 +93,10 @@ class CGLVM:
                        scale=tf.ones([self.k_foreground, num_datapoints_y]),
                        name="ty")
 
-            x = yield tfd.Poisson(rate=tf.math.multiply(tf.math.exp(tf.math.add(tf.math.multiply(tf.matmul(s, zx), 1), mu_x)), 1), #size_factor_x / data_dim),
+            x = yield tfd.Poisson(rate=tf.math.multiply(tf.math.exp(tf.math.add(tf.math.multiply(tf.matmul(s, zx), 1), mu_x)), size_factor_x / data_dim),
                              name="x")
 
-            y = yield tfd.Poisson(rate=tf.math.multiply(tf.math.exp(tf.math.add(tf.matmul(s, zy) + tf.matmul(w, ty), mu_y)), 1), #size_factor_y / data_dim),
+            y = yield tfd.Poisson(rate=tf.math.multiply(tf.math.exp(tf.math.add(tf.matmul(s, zy) + tf.matmul(w, ty), mu_y)), size_factor_y / data_dim),
                                  name="y")
             # x = yield tfd.Poisson(rate=tf.math.exp(tf.matmul(s, zx) + mu_x), # + tf.math.log(size_factor_x)),
             #                  name="x")
@@ -131,21 +131,20 @@ class CGLVM:
                                                 is_H0 = is_H0)
 
         model=tfd.JointDistributionCoroutineAutoBatched(concrete_clvm_model)
-        # import ipdb; ipdb.set_trace()
 
         if is_H0:
 
-            # def target_log_prob_fn(mu_x, mu_y, size_factor_x, size_factor_y, s, zx, zy): return model.log_prob(
-            #     (mu_x, mu_y, size_factor_x, size_factor_y, s, zx, zy, X, Y))
-            def target_log_prob_fn(mu_x, mu_y, s, zx, zy): return model.log_prob(
-                (mu_x, mu_y, s, zx, zy, X, Y))
+            def target_log_prob_fn(mu_x, mu_y, size_factor_x, size_factor_y, s, zx, zy): return model.log_prob(
+                (mu_x, mu_y, size_factor_x, size_factor_y, s, zx, zy, X, Y))
+            # def target_log_prob_fn(mu_x, mu_y, s, zx, zy): return model.log_prob(
+            #     (mu_x, mu_y, s, zx, zy, X, Y))
 
         else:
 
-            # def target_log_prob_fn(mu_x, mu_y, size_factor_x, size_factor_y, s, zx, zy, w, ty): return model.log_prob(
-            #     (mu_x, mu_y, size_factor_x, size_factor_y, s, zx, zy, w, ty, X, Y))
-            def target_log_prob_fn(mu_x, mu_y, s, zx, zy, w, ty): return model.log_prob(
-                (mu_x, mu_y, s, zx, zy, w, ty, X, Y))
+            def target_log_prob_fn(mu_x, mu_y, size_factor_x, size_factor_y, s, zx, zy, w, ty): return model.log_prob(
+                (mu_x, mu_y, size_factor_x, size_factor_y, s, zx, zy, w, ty, X, Y))
+            # def target_log_prob_fn(mu_x, mu_y, s, zx, zy, w, ty): return model.log_prob(
+            #     (mu_x, mu_y, s, zx, zy, w, ty, X, Y))
         # ------- Specify variational families -----------
 
         # Variational parmater means
@@ -197,13 +196,13 @@ class CGLVM:
         def factored_normal_variational_model():
           qmu_x = yield tfd.Normal(loc=qmu_x_mean, scale=qmu_x_stddv, name="qmu_x")
           qmu_y = yield tfd.Normal(loc=qmu_y_mean, scale=qmu_y_stddv, name="qmu_y")
-          # qsize_factor_x = yield tfd.LogNormal(loc=qsize_factor_x_mean,
-          #                scale=qsize_factor_x_stddv,
-          #                name="qsize_factor_x")
+          qsize_factor_x = yield tfd.LogNormal(loc=qsize_factor_x_mean,
+                         scale=qsize_factor_x_stddv,
+                         name="qsize_factor_x")
 
-          # qsize_factor_y = yield tfd.LogNormal(loc=qsize_factor_y_mean,
-          #                scale=qsize_factor_y_stddv,
-          #                name="qsize_factor_y")
+          qsize_factor_y = yield tfd.LogNormal(loc=qsize_factor_y_mean,
+                         scale=qsize_factor_y_stddv,
+                         name="qsize_factor_y")
           qs = yield tfd.Normal(loc=qs_mean, scale=qs_stddv, name="qs")
           qzx = yield tfd.Normal(loc=qzx_mean, scale=qzx_stddv, name="qzx")
           qzy = yield tfd.Normal(loc=qzy_mean, scale=qzy_stddv, name="qzy")
@@ -224,9 +223,6 @@ class CGLVM:
             optimizer=tf.optimizers.Adam(learning_rate=LEARNING_RATE_VI),
             num_steps=NUM_VI_ITERS)
 
-        # import ipdb
-        # ipdb.set_trace()
-
         if is_H0:
             return_dict = {
                 'loss_trace': losses,
@@ -236,10 +232,6 @@ class CGLVM:
                 'qs_stddv': qs_stddv,
                 'qzx_stddv': qzx_stddv,
                 'qzy_stddv': qzy_stddv,
-                # 'qdeltax_mean': qdeltax_mean,
-                # 'qdeltay_mean': qdeltay_mean,
-                # 'qdeltax_stddv': qdeltax_stddv,
-                # 'qdeltay_stddv': qdeltay_stddv,
             }
         else:
             return_dict = {
@@ -260,12 +252,6 @@ class CGLVM:
                 'qsize_factor_x_stddv': qsize_factor_x_stddv,
                 'qsize_factor_y_mean': qsize_factor_y_mean,
                 'qsize_factor_y_stddv': qsize_factor_y_stddv
-                # 'qdeltax_mean': qdeltax_mean,
-                # 'qdeltay_mean': qdeltay_mean,
-                # 'qdeltax_stddv': qdeltax_stddv,
-                # 'qdeltay_stddv': qdeltay_stddv,
-                # 'qsize_factors_x_mean': qsize_factors_x_mean,
-                # 'qsize_factors_y_mean': qsize_factors_y_mean
             }
 
         return return_dict
@@ -305,10 +291,11 @@ class CGLVM:
 
         else:
 
-            # def target_log_prob_fn(mu_x, mu_y, size_factor_x, size_factor_y, s, zx, zy, w, ty): return model.log_prob(
-            #     (mu_x, mu_y, size_factor_x, size_factor_y, s, zx, zy, w, ty, X, Y))
-            def target_log_prob_fn(mu_x, mu_y, s, zx, zy, w, ty): return model.log_prob(
-                (mu_x, mu_y, s, zx, zy, w, ty, X, Y))
+            def target_log_prob_fn(mu_x, mu_y, size_factor_x, size_factor_y, s, zx, zy, w, ty): return model.log_prob(
+                (mu_x, mu_y, size_factor_x, size_factor_y, s, zx, zy, w, ty, X, Y))
+            # def target_log_prob_fn(mu_x, mu_y, s, zx, zy, w, ty): return model.log_prob(
+            #     (mu_x, mu_y, s, zx, zy, w, ty, X, Y))
+            
         # ------- Specify variational families -----------
 
         mu_x = tf.Variable(tf.random.normal([data_dim, 1]))
@@ -334,10 +321,6 @@ class CGLVM:
                 'qs_stddv': qs_stddv,
                 'qzx_stddv': qzx_stddv,
                 'qzy_stddv': qzy_stddv,
-                # 'qdeltax_mean': qdeltax_mean,
-                # 'qdeltay_mean': qdeltay_mean,
-                # 'qdeltax_stddv': qdeltax_stddv,
-                # 'qdeltay_stddv': qdeltay_stddv,
             }
         else:
             return_dict = {

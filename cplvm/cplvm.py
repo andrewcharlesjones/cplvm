@@ -143,14 +143,6 @@ class CPLVM:
 			else:
 				def target_log_prob_fn(size_factor_x, size_factor_y, s, zx, zy, w, ty): return model.log_prob(
 					(size_factor_x, size_factor_y, s, zx, zy, w, ty, X, Y))
-			# if offset_term:
-			# 	def target_log_prob_fn(deltax, s, zx, zy, w, ty): return model.log_prob(
-			# 		(deltax, s, zx, zy, w, ty, X, Y))
-				
-
-			# else:
-			# 	def target_log_prob_fn(s, zx, zy, w, ty): return model.log_prob(
-			# 		(s, zx, zy, w, ty, X, Y))
 
 		# ------- Specify variational families -----------
 
@@ -369,10 +361,6 @@ class CPLVM:
 				'qs_stddv': qs_stddv,
 				'qzx_stddv': qzx_stddv,
 				'qzy_stddv': qzy_stddv,
-				# 'qdeltax_mean': qdeltax_mean,
-				# 'qdeltay_mean': qdeltay_mean,
-				# 'qdeltax_stddv': qdeltax_stddv,
-				# 'qdeltay_stddv': qdeltay_stddv,
 			}
 		else:
 			return_dict = {
