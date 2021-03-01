@@ -59,10 +59,10 @@ Let's inspect the fitted loadings matrices. To do this, let's take the mean of t
 
 ```python
 # Shared loadings
-S = np.exp(model_output['qs_mean'].numpy() + model_output['qs_stddv'].numpy()**2)
+S = np.exp(model_output['qs_mean'].numpy() + 0.5 * model_output['qs_stddv'].numpy()**2)
 
 # Foreground-specific loadings
-W = np.exp(model_output['qw_mean'].numpy() + model_output['qw_stddv'].numpy()**2)
+W = np.exp(model_output['qw_mean'].numpy() + 0.5 * model_output['qw_stddv'].numpy()**2)
 ```
 
 Now we can visualize each component as a 1D line.
