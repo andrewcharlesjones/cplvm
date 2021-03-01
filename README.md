@@ -6,10 +6,11 @@ The accompanying paper can be found here: https://arxiv.org/abs/2102.06731.
 
 ## Installation
 
-To install the package, run the following commands in a terminal from the directory in which you want to install it.
+See requirements.txt for a list installed packages and their versions. To install the package, run the following commands in a terminal from the directory in which you want to install it.
 ```bash
 git clone git@github.com:andrewcharlesjones/cplvm.git
 cd cplvm
+pip install -r requirements.txt
 python setup.py install
 ```
 
