@@ -13,7 +13,7 @@ from tensorflow_probability import bijectors as tfb
 
 
 from scipy.stats import multivariate_normal
-
+from cplvm.models.model import ContrastiveModel
 
 tf.enable_v2_behavior()
 
@@ -24,11 +24,11 @@ LEARNING_RATE_VI = 0.05
 
 
 
-class CPLVM:
+class CPLVM(ContrastiveModel):
 
 	def __init__(self, k_shared, k_foreground):
-		self.k_shared = k_shared
-		self.k_foreground = k_foreground
+
+		super().__init__(k_shared, k_foreground)
 
 
 	def model(self, data_dim, num_datapoints_x, num_datapoints_y, counts_per_cell_X, counts_per_cell_Y, is_H0=False, num_test_genes=0, offset_term=True):
@@ -49,16 +49,16 @@ class CPLVM:
 											scale=np.std(np.log(counts_per_cell_Y)) * tf.ones([1, num_datapoints_y]),
 											name="size_factor_y")
 
-		s = yield tfd.Gamma(concentration=tf.ones([data_dim, self.k_shared]),
-					 rate=tf.ones([data_dim, self.k_shared]),
+		s = yield tfd.Gamma(concentration=tf.ones([data_dim, self._k_shared]),
+					 rate=tf.ones([data_dim, self._k_shared]),
 					 name="w")
 
-		zx = yield tfd.Gamma(concentration=tf.ones([self.k_shared, num_datapoints_x]),
-					   rate=tf.math.multiply(5 * tf.ones([self.k_shared, num_datapoints_x]), 1),
+		zx = yield tfd.Gamma(concentration=tf.ones([self._k_shared, num_datapoints_x]),
+					   rate=tf.math.multiply(1 * tf.ones([self._k_shared, num_datapoints_x]), 1),
 					   name="zx")
 
-		zy = yield tfd.Gamma(concentration=tf.ones([self.k_shared, num_datapoints_y]),
-					   rate=tf.math.multiply(5 * tf.ones([self.k_shared, num_datapoints_y]), 1),
+		zy = yield tfd.Gamma(concentration=tf.ones([self._k_shared, num_datapoints_y]),
+					   rate=tf.math.multiply(1 * tf.ones([self._k_shared, num_datapoints_y]), 1),
 					   name="zy")
 
 		# Null
@@ -73,12 +73,12 @@ class CPLVM:
 
 		else:
 
-			w = yield tfd.Gamma(concentration=tf.ones([data_dim - num_test_genes, self.k_foreground]),
-					   rate=tf.ones([data_dim - num_test_genes, self.k_foreground]),
+			w = yield tfd.Gamma(concentration=tf.ones([data_dim - num_test_genes, self._k_foreground]),
+					   rate=tf.ones([data_dim - num_test_genes, self._k_foreground]),
 					   name="w")
 
-			ty = yield tfd.Gamma(concentration=tf.ones([self.k_foreground, num_datapoints_y]),
-					   rate=tf.math.multiply(5 * tf.ones([self.k_foreground, num_datapoints_y]), 1),
+			ty = yield tfd.Gamma(concentration=tf.ones([self._k_foreground, num_datapoints_y]),
+					   rate=tf.math.multiply(1 * tf.ones([self._k_foreground, num_datapoints_y]), 1),
 					   name="ty")
 
 			x = yield tfd.Poisson(rate=tf.math.multiply(tf.math.multiply(tf.math.multiply(tf.matmul(s, zx), 1), deltax), size_factor_x),
@@ -86,14 +86,14 @@ class CPLVM:
 
 			
 			if num_test_genes != 0:
-				w_padding = tf.zeros([num_test_genes, self.k_foreground])
+				w_padding = tf.zeros([num_test_genes, self._k_foreground])
 				w = tf.concat([w, w_padding], axis=0)
 				
 			y = yield tfd.Poisson(rate=tf.math.multiply(tf.math.multiply(tf.matmul(s, zy) + tf.matmul(w, ty), 1), size_factor_y),
 								 name="y")
 
 
-	def fit_model_vi(self, X, Y, compute_size_factors = True, is_H0 = False, num_test_genes=0, offset_term=True):
+	def _fit_model_vi(self, X, Y, approximate_model, compute_size_factors = True, is_H0 = False, num_test_genes=0, offset_term=True):
 
 		assert X.shape[0] == Y.shape[0]
 		data_dim=X.shape[0]
@@ -144,84 +144,85 @@ class CPLVM:
 				def target_log_prob_fn(size_factor_x, size_factor_y, s, zx, zy, w, ty): return model.log_prob(
 					(size_factor_x, size_factor_y, s, zx, zy, w, ty, X, Y))
 
-		# ------- Specify variational families -----------
+		# # ------- Specify variational families -----------
 
-		# Variational parmater means
+		# # Variational parmater means
 
-		if offset_term:
-			# delta
-			qdeltax_mean = tf.Variable(tf.random.normal([data_dim, 1]))
-			qdeltax_stddv = tfp.util.TransformedVariable(
-			  1e-4 * tf.ones([data_dim, 1]),
-			  bijector=tfb.Softplus())
+		# if offset_term:
+		# 	# delta
+		# 	qdeltax_mean = tf.Variable(tf.random.normal([data_dim, 1]))
+		# 	qdeltax_stddv = tfp.util.TransformedVariable(
+		# 	  1e-4 * tf.ones([data_dim, 1]),
+		# 	  bijector=tfb.Softplus())
 
-		qsize_factor_x_mean = tf.Variable(tf.random.normal([1, num_datapoints_x]))
-		qsize_factor_x_stddv = tfp.util.TransformedVariable(
-			1e-4 * tf.ones([1, num_datapoints_x]),
-			bijector=tfb.Softplus())
+		# qsize_factor_x_mean = tf.Variable(tf.random.normal([1, num_datapoints_x]))
+		# qsize_factor_x_stddv = tfp.util.TransformedVariable(
+		# 	1e-4 * tf.ones([1, num_datapoints_x]),
+		# 	bijector=tfb.Softplus())
 
-		qsize_factor_y_mean = tf.Variable(tf.random.normal([1, num_datapoints_y]))
-		qsize_factor_y_stddv = tfp.util.TransformedVariable(
-			1e-4 * tf.ones([1, num_datapoints_y]),
-			bijector=tfb.Softplus())
+		# qsize_factor_y_mean = tf.Variable(tf.random.normal([1, num_datapoints_y]))
+		# qsize_factor_y_stddv = tfp.util.TransformedVariable(
+		# 	1e-4 * tf.ones([1, num_datapoints_y]),
+		# 	bijector=tfb.Softplus())
 
 
 
-		# S
-		qs_mean = tf.Variable(tf.random.normal([data_dim, self.k_shared]))
-		qw_mean = tf.Variable(tf.random.normal([data_dim - num_test_genes, self.k_foreground]))
-		qzx_mean = tf.Variable(tf.random.normal([self.k_shared, num_datapoints_x]))
-		qzy_mean = tf.Variable(tf.random.normal([self.k_shared, num_datapoints_y]))
-		qty_mean = tf.Variable(tf.random.normal([self.k_foreground, num_datapoints_y]))
+		# # S
+		# qs_mean = tf.Variable(tf.random.normal([data_dim, self._k_shared]))
+		# qw_mean = tf.Variable(tf.random.normal([data_dim - num_test_genes, self._k_foreground]))
+		# qzx_mean = tf.Variable(tf.random.normal([self._k_shared, num_datapoints_x]))
+		# qzy_mean = tf.Variable(tf.random.normal([self._k_shared, num_datapoints_y]))
+		# qty_mean = tf.Variable(tf.random.normal([self._k_foreground, num_datapoints_y]))
 
-		qs_stddv = tfp.util.TransformedVariable(
-		  1e-4 * tf.ones([data_dim, self.k_shared]),
-		  bijector=tfb.Softplus())
-		qw_stddv = tfp.util.TransformedVariable(
-		  1e-4 * tf.ones([data_dim - num_test_genes, self.k_foreground]),
-		  bijector=tfb.Softplus())
-		qzx_stddv = tfp.util.TransformedVariable(
-			1e-4 * tf.ones([self.k_shared, num_datapoints_x]),
-			bijector=tfb.Softplus())
-		qzy_stddv = tfp.util.TransformedVariable(
-			1e-4 * tf.ones([self.k_shared, num_datapoints_y]),
-			bijector=tfb.Softplus())
-		qty_stddv = tfp.util.TransformedVariable(
-			1e-4 * tf.ones([self.k_foreground, num_datapoints_y]),
-			bijector=tfb.Softplus())
+		# qs_stddv = tfp.util.TransformedVariable(
+		#   1e-4 * tf.ones([data_dim, self._k_shared]),
+		#   bijector=tfb.Softplus())
+		# qw_stddv = tfp.util.TransformedVariable(
+		#   1e-4 * tf.ones([data_dim - num_test_genes, self._k_foreground]),
+		#   bijector=tfb.Softplus())
+		# qzx_stddv = tfp.util.TransformedVariable(
+		# 	1e-4 * tf.ones([self._k_shared, num_datapoints_x]),
+		# 	bijector=tfb.Softplus())
+		# qzy_stddv = tfp.util.TransformedVariable(
+		# 	1e-4 * tf.ones([self._k_shared, num_datapoints_y]),
+		# 	bijector=tfb.Softplus())
+		# qty_stddv = tfp.util.TransformedVariable(
+		# 	1e-4 * tf.ones([self._k_foreground, num_datapoints_y]),
+		# 	bijector=tfb.Softplus())
 
-		def factored_normal_variational_model():
+		# def factored_normal_variational_model():
 
-			if offset_term:
-				qdeltax = yield tfd.LogNormal(loc=qdeltax_mean, scale=qdeltax_stddv, name="qdeltax")
+		# 	if offset_term:
+		# 		qdeltax = yield tfd.LogNormal(loc=qdeltax_mean, scale=qdeltax_stddv, name="qdeltax")
 
-			qsize_factor_x = yield tfd.LogNormal(loc=qsize_factor_x_mean,
-						 scale=qsize_factor_x_stddv,
-						 name="qsize_factor_x")
+		# 	qsize_factor_x = yield tfd.LogNormal(loc=qsize_factor_x_mean,
+		# 				 scale=qsize_factor_x_stddv,
+		# 				 name="qsize_factor_x")
 
-			qsize_factor_y = yield tfd.LogNormal(loc=qsize_factor_y_mean,
-						 scale=qsize_factor_y_stddv,
-						 name="qsize_factor_y")
+		# 	qsize_factor_y = yield tfd.LogNormal(loc=qsize_factor_y_mean,
+		# 				 scale=qsize_factor_y_stddv,
+		# 				 name="qsize_factor_y")
 
-			qs = yield tfd.LogNormal(loc=qs_mean, scale=qs_stddv, name="qs")
-			qzx = yield tfd.LogNormal(loc=qzx_mean, scale=qzx_stddv, name="qzx")
-			qzy = yield tfd.LogNormal(loc=qzy_mean, scale=qzy_stddv, name="qzy")
+		# 	qs = yield tfd.LogNormal(loc=qs_mean, scale=qs_stddv, name="qs")
+		# 	qzx = yield tfd.LogNormal(loc=qzx_mean, scale=qzx_stddv, name="qzx")
+		# 	qzy = yield tfd.LogNormal(loc=qzy_mean, scale=qzy_stddv, name="qzy")
 
-			if not is_H0:
-				qw = yield tfd.LogNormal(loc=qw_mean, scale=qw_stddv, name="qw")
-				qty = yield tfd.LogNormal(loc=qty_mean, scale=qty_stddv, name="qty")
+		# 	if not is_H0:
+		# 		qw = yield tfd.LogNormal(loc=qw_mean, scale=qw_stddv, name="qw")
+		# 		qty = yield tfd.LogNormal(loc=qty_mean, scale=qty_stddv, name="qty")
 
-		# Surrogate posterior that we will try to make close to p
-		surrogate_posterior = tfd.JointDistributionCoroutineAutoBatched(
-			factored_normal_variational_model)
+		# # Surrogate posterior that we will try to make close to p
+		# surrogate_posterior = tfd.JointDistributionCoroutineAutoBatched(
+		# 	factored_normal_variational_model)
 
 		# --------- Fit variational inference model using MC samples and gradient descent ----------
 
 		losses = tfp.vi.fit_surrogate_posterior(
 			target_log_prob_fn,
-			surrogate_posterior=surrogate_posterior,
+			surrogate_posterior=approximate_model.approximate_posterior,
 			optimizer=tf.optimizers.Adam(learning_rate=LEARNING_RATE_VI),
 			num_steps=NUM_VI_ITERS)
+		import ipdb; ipdb.set_trace()
 
 		if is_H0:
 			return_dict = {
@@ -279,7 +280,7 @@ class CPLVM:
 		return return_dict
 
 
-	def fit_model_map(self, X, Y, compute_size_factors = True, is_H0 = False, num_test_genes=0, offset_term=True):
+	def _fit_model_map(self, X, Y, compute_size_factors = True, is_H0 = False, num_test_genes=0, offset_term=True):
 
 		assert X.shape[0] == Y.shape[0]
 		data_dim=X.shape[0]
@@ -335,16 +336,16 @@ class CPLVM:
 
 
 		qzy_stddv = tfp.util.TransformedVariable(
-			1e-4 * tf.ones([self.k_shared, num_datapoints_y]),
+			1e-4 * tf.ones([self._k_shared, num_datapoints_y]),
 			bijector=tfb.Softplus())
 
 		mu_x = tf.Variable(tf.random.normal([data_dim, 1]))
 		mu_y = tf.Variable(tf.random.normal([data_dim, 1]))
-		s = tf.Variable(tf.random.normal([data_dim, self.k_shared]))
-		w = tf.Variable(tf.random.normal([data_dim, self.k_foreground]))
-		zx = tf.Variable(tf.random.normal([self.k_shared, num_datapoints_x]))
-		zy = tf.Variable(tf.random.normal([self.k_shared, num_datapoints_y]))
-		ty = tf.Variable(tf.random.normal([self.k_foreground, num_datapoints_y]))
+		s = tf.Variable(tf.random.normal([data_dim, self._k_shared]))
+		w = tf.Variable(tf.random.normal([data_dim, self._k_foreground]))
+		zx = tf.Variable(tf.random.normal([self._k_shared, num_datapoints_x]))
+		zy = tf.Variable(tf.random.normal([self._k_shared, num_datapoints_y]))
+		ty = tf.Variable(tf.random.normal([self._k_foreground, num_datapoints_y]))
 
 		target_log_prob_fn = lambda mu_x, mu_y, s, zx, zy, w, ty: model.log_prob((mu_x, mu_y, s, zx, zy, w, ty, X, Y))
 		losses = tfp.math.minimize(
