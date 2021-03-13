@@ -1,4 +1,5 @@
 # [Contrastive Poisson latent variable models](https://arxiv.org/abs/2102.06731)
+[![Build Status](https://travis-ci.org/andrewcharlesjones/viabel.svg?branch=master)](https://travis-ci.org/andrewcharlesjones/cplvm)
 
 This repo contains models and algorithms for contrastive Poisson latent variable models (CPLVM). Given a count-based foreground dataset and a count-based backround dataset, the CPLVM is designed to find structure and variation that is enriched in the foreground relative to the background.
 
