@@ -1,5 +1,6 @@
 import matplotlib
 from cplvm import CPLVM
+from cplvm import CPLVMLogNormalApprox
 
 import functools
 import warnings
@@ -18,9 +19,6 @@ import tensorflow_probability as tfp
 
 from tensorflow_probability import distributions as tfd
 from tensorflow_probability import bijectors as tfb
-
-
-
 
 import matplotlib
 font = {'size': 30}
@@ -77,8 +75,11 @@ if __name__ == "__main__":
         # Run H0 and H1 models on data
         cplvm = CPLVM(k_shared=latent_dim_shared, k_foreground=latent_dim_foreground)
 
-        H1_results = cplvm.fit_model_vi(X, Y, compute_size_factors=True, is_H0=False)
-        H0_results = cplvm.fit_model_vi(X, Y, compute_size_factors=True, is_H0=True)
+        approx_model = CPLVMLogNormalApprox(X, Y, latent_dim_shared, latent_dim_foreground)
+        H1_results = cplvm._fit_model_vi(X, Y, approx_model, compute_size_factors=True, is_H0=False)
+        import ipdb; ipdb.set_trace()
+        approx_model = CPLVMLogNormalApprox(X, Y, latent_dim_shared, latent_dim_foreground)
+        H0_results = cplvm._fit_model_vi(X, Y, approx_model, compute_size_factors=True, is_H0=True)
 
         H1_elbo = -1 * \
             H1_results['loss_trace'][-1].numpy() / \
@@ -107,8 +108,8 @@ if __name__ == "__main__":
         # Run H0 and H1 models on data
         cplvm = CPLVM(k_shared=latent_dim_shared, k_foreground=latent_dim_foreground)
 
-        H1_results = cplvm.fit_model_vi(X, Y, compute_size_factors=True, is_H0=False)
-        H0_results = cplvm.fit_model_vi(X, Y, compute_size_factors=True, is_H0=True)
+        H1_results = cplvm._fit_model_vi(X, Y, compute_size_factors=True, is_H0=False)
+        H0_results = cplvm._fit_model_vi(X, Y, compute_size_factors=True, is_H0=True)
 
         H1_elbo = -1 * \
             H1_results['loss_trace'][-1].numpy() / \
@@ -145,9 +146,9 @@ if __name__ == "__main__":
 
         cplvm = CPLVM(k_shared=latent_dim_shared, k_foreground=latent_dim_foreground)
 
-        H1_results = cplvm.fit_model_vi(
+        H1_results = cplvm._fit_model_vi(
             X, Y, compute_size_factors=True, is_H0=False)
-        H0_results = cplvm.fit_model_vi(
+        H0_results = cplvm._fit_model_vi(
             X, Y, compute_size_factors=True, is_H0=True)
 
         H1_elbo = -1 * \
@@ -166,9 +167,9 @@ if __name__ == "__main__":
         ########## "Treatment" data CGLVM ##########
 
         # Run H0 and H1 models on data
-        # H1_results = fit_clvm_link(
+        # H1_results = _fit_clvm_link(
         #     X, Y, latent_dim_shared, latent_dim_target, compute_size_factors=False, is_H0=False)
-        # H0_results = fit_clvm_link(
+        # H0_results = _fit_clvm_link(
         #     X, Y, latent_dim_shared, latent_dim_target, compute_size_factors=False, is_H0=True)
 
         # H1_elbo = -1 * \
@@ -196,9 +197,9 @@ if __name__ == "__main__":
         # Y = all_data[:, y_idx]
 
         # # Run H0 and H1 models on data
-        # H1_results = fit_clvm_link(
+        # H1_results = _fit_clvm_link(
         #     X, Y, latent_dim_shared, latent_dim_target, compute_size_factors=False, is_H0=False)
-        # H0_results = fit_clvm_link(
+        # H0_results = _fit_clvm_link(
         #     X, Y, latent_dim_shared, latent_dim_target, compute_size_factors=False, is_H0=True)
 
         # H1_elbo = -1 * \
@@ -234,9 +235,9 @@ if __name__ == "__main__":
 
         # # Run H0 and H1 models on data
 
-        # H1_results = fit_clvm_link(
+        # H1_results = _fit_clvm_link(
         #     X, Y, latent_dim_shared, latent_dim_target, compute_size_factors=False, is_H0=False)
-        # H0_results = fit_clvm_link(
+        # H0_results = _fit_clvm_link(
         #     X, Y, latent_dim_shared, latent_dim_target, compute_size_factors=False, is_H0=True)
 
         # H1_elbo = -1 * \
