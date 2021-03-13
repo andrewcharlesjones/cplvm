@@ -1,6 +1,7 @@
 import matplotlib
 
 from cplvm import CPLVM, CGLVM
+from cplvm import CGLVMMFGaussianApprox
 
 import functools
 import warnings
@@ -80,7 +81,8 @@ if __name__ == "__main__":
         # Run H0 and H1 models on data
         cglvm = CGLVM(k_shared=latent_dim_shared, k_foreground=latent_dim_foreground)
 
-        H1_results = cglvm.fit_model_vi(X, Y, compute_size_factors=False, is_H0=False)
+        approx_model = CGLVMMFGaussianApprox(X, Y, latent_dim_shared, latent_dim_foreground)
+        H1_results = cglvm.fit_model_vi(X, Y, approx_model, compute_size_factors=False, is_H0=False)
         H0_results = cglvm.fit_model_vi(X, Y, compute_size_factors=False, is_H0=True)
 
         H1_elbo = -1 * \

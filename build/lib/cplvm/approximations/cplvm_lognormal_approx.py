@@ -25,7 +25,6 @@ class CPLVMLogNormalApprox(ApproximateModel):
 		self.num_datapoints_y = Y.shape[1]
 		self._k_shared = k_shared
 		self._k_foreground = k_foreground
-		# import ipdb; ipdb.set_trace()
 
 		if offset_term:
 			# delta

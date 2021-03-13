@@ -144,76 +144,6 @@ class CPLVM(ContrastiveModel):
 				def target_log_prob_fn(size_factor_x, size_factor_y, s, zx, zy, w, ty): return model.log_prob(
 					(size_factor_x, size_factor_y, s, zx, zy, w, ty, X, Y))
 
-		# # ------- Specify variational families -----------
-
-		# # Variational parmater means
-
-		# if offset_term:
-		# 	# delta
-		# 	qdeltax_mean = tf.Variable(tf.random.normal([data_dim, 1]))
-		# 	qdeltax_stddv = tfp.util.TransformedVariable(
-		# 	  1e-4 * tf.ones([data_dim, 1]),
-		# 	  bijector=tfb.Softplus())
-
-		# qsize_factor_x_mean = tf.Variable(tf.random.normal([1, num_datapoints_x]))
-		# qsize_factor_x_stddv = tfp.util.TransformedVariable(
-		# 	1e-4 * tf.ones([1, num_datapoints_x]),
-		# 	bijector=tfb.Softplus())
-
-		# qsize_factor_y_mean = tf.Variable(tf.random.normal([1, num_datapoints_y]))
-		# qsize_factor_y_stddv = tfp.util.TransformedVariable(
-		# 	1e-4 * tf.ones([1, num_datapoints_y]),
-		# 	bijector=tfb.Softplus())
-
-
-
-		# # S
-		# qs_mean = tf.Variable(tf.random.normal([data_dim, self._k_shared]))
-		# qw_mean = tf.Variable(tf.random.normal([data_dim - num_test_genes, self._k_foreground]))
-		# qzx_mean = tf.Variable(tf.random.normal([self._k_shared, num_datapoints_x]))
-		# qzy_mean = tf.Variable(tf.random.normal([self._k_shared, num_datapoints_y]))
-		# qty_mean = tf.Variable(tf.random.normal([self._k_foreground, num_datapoints_y]))
-
-		# qs_stddv = tfp.util.TransformedVariable(
-		#   1e-4 * tf.ones([data_dim, self._k_shared]),
-		#   bijector=tfb.Softplus())
-		# qw_stddv = tfp.util.TransformedVariable(
-		#   1e-4 * tf.ones([data_dim - num_test_genes, self._k_foreground]),
-		#   bijector=tfb.Softplus())
-		# qzx_stddv = tfp.util.TransformedVariable(
-		# 	1e-4 * tf.ones([self._k_shared, num_datapoints_x]),
-		# 	bijector=tfb.Softplus())
-		# qzy_stddv = tfp.util.TransformedVariable(
-		# 	1e-4 * tf.ones([self._k_shared, num_datapoints_y]),
-		# 	bijector=tfb.Softplus())
-		# qty_stddv = tfp.util.TransformedVariable(
-		# 	1e-4 * tf.ones([self._k_foreground, num_datapoints_y]),
-		# 	bijector=tfb.Softplus())
-
-		# def factored_normal_variational_model():
-
-		# 	if offset_term:
-		# 		qdeltax = yield tfd.LogNormal(loc=qdeltax_mean, scale=qdeltax_stddv, name="qdeltax")
-
-		# 	qsize_factor_x = yield tfd.LogNormal(loc=qsize_factor_x_mean,
-		# 				 scale=qsize_factor_x_stddv,
-		# 				 name="qsize_factor_x")
-
-		# 	qsize_factor_y = yield tfd.LogNormal(loc=qsize_factor_y_mean,
-		# 				 scale=qsize_factor_y_stddv,
-		# 				 name="qsize_factor_y")
-
-		# 	qs = yield tfd.LogNormal(loc=qs_mean, scale=qs_stddv, name="qs")
-		# 	qzx = yield tfd.LogNormal(loc=qzx_mean, scale=qzx_stddv, name="qzx")
-		# 	qzy = yield tfd.LogNormal(loc=qzy_mean, scale=qzy_stddv, name="qzy")
-
-		# 	if not is_H0:
-		# 		qw = yield tfd.LogNormal(loc=qw_mean, scale=qw_stddv, name="qw")
-		# 		qty = yield tfd.LogNormal(loc=qty_mean, scale=qty_stddv, name="qty")
-
-		# # Surrogate posterior that we will try to make close to p
-		# surrogate_posterior = tfd.JointDistributionCoroutineAutoBatched(
-		# 	factored_normal_variational_model)
 
 		# --------- Fit variational inference model using MC samples and gradient descent ----------
 
@@ -222,7 +152,6 @@ class CPLVM(ContrastiveModel):
 			surrogate_posterior=approximate_model.approximate_posterior,
 			optimizer=tf.optimizers.Adam(learning_rate=LEARNING_RATE_VI),
 			num_steps=NUM_VI_ITERS)
-		import ipdb; ipdb.set_trace()
 
 		if is_H0:
 			return_dict = {
