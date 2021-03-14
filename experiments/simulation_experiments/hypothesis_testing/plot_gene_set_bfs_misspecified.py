@@ -5,9 +5,10 @@ import pandas as pd
 import matplotlib.patches as mpatches
 
 import matplotlib
-font = {'size': 30}
-matplotlib.rc('font', **font)
-matplotlib.rcParams['text.usetex'] = True
+
+font = {"size": 30}
+matplotlib.rc("font", **font)
+matplotlib.rcParams["text.usetex"] = True
 
 
 # Load BFs
@@ -26,19 +27,24 @@ box_colors[0] = "red"
 
 # Plot boxplot
 plt.figure(figsize=(14, 7))
-ax = sns.boxplot(data=pd.melt(pd.DataFrame(all_elbos, columns=gene_set_names)), x="variable", y="value", color="gray")
+ax = sns.boxplot(
+    data=pd.melt(pd.DataFrame(all_elbos, columns=gene_set_names)),
+    x="variable",
+    y="value",
+    color="gray",
+)
 
 
 mybox = ax.artists[0]
-mybox.set_facecolor('red')
+mybox.set_facecolor("red")
 
 # mybox = ax.artists[-1]
 # mybox.set_facecolor('black')
 
-red_patch = mpatches.Patch(color='red', label='Perturbed')
-gray_patch = mpatches.Patch(color='gray', label='Unperturbed')
+red_patch = mpatches.Patch(color="red", label="Perturbed")
+gray_patch = mpatches.Patch(color="gray", label="Unperturbed")
 # black_patch = mpatches.Patch(color='black', label='Shuffled')
-plt.legend(handles=[red_patch, gray_patch], fontsize=20, loc = 'upper center')
+plt.legend(handles=[red_patch, gray_patch], fontsize=20, loc="upper center")
 
 
 plt.ylabel("log(EBF)")

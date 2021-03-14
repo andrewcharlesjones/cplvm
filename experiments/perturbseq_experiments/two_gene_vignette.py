@@ -7,17 +7,20 @@ from scipy.stats import pearsonr
 import seaborn as sns
 
 import matplotlib
-font = {'size': 30}
-matplotlib.rc('font', **font)
-matplotlib.rcParams['text.usetex'] = True
+
+font = {"size": 30}
+matplotlib.rc("font", **font)
+matplotlib.rcParams["text.usetex"] = True
 
 DATA_DIR = "../../perturb_seq/data/targeted_genes"
 gene = "Hif1a"
-mim_path = "../../../differential_covariance/clvm/perturbseq_experiments/out/mimosca_coefficients/{}/beta.csv".format(gene)
+mim_path = "../../../differential_covariance/clvm/perturbseq_experiments/out/mimosca_coefficients/{}/beta.csv".format(
+    gene
+)
 
 
 mimosca_coeffs = pd.read_csv(mim_path, index_col=0)
-mimosca_coeffs.columns = ['mimosca_beta']
+mimosca_coeffs.columns = ["mimosca_beta"]
 
 
 curr_dir = os.path.join(DATA_DIR, gene)
@@ -45,18 +48,23 @@ plt.figure(figsize=(22, 7))
 plt.subplot(131)
 sns.regplot(X1, X2, label="Background")
 sns.regplot(Y1, Y2, label="Foreground")
-plt.legend(prop={'size': 20})
+plt.legend(prop={"size": 20})
 plt.xlabel(gene_name1.split("_")[1].upper() + " log-expression")
 plt.ylabel(gene_name2.split("_")[1].upper() + " log-expression")
 plt.title(gene.upper() + " experiment")
 
 
-
 ## Plot linear model coefficients
 
 plot_mat = mimosca_coeffs.sort_values("mimosca_beta", ascending=False).iloc[:, 0].values
-gene1_idx = np.where(mimosca_coeffs.sort_values("mimosca_beta", ascending=False).index.values == gene_name1)[0]
-gene2_idx = np.where(mimosca_coeffs.sort_values("mimosca_beta", ascending=False).index.values == gene_name2)[0]
+gene1_idx = np.where(
+    mimosca_coeffs.sort_values("mimosca_beta", ascending=False).index.values
+    == gene_name1
+)[0]
+gene2_idx = np.where(
+    mimosca_coeffs.sort_values("mimosca_beta", ascending=False).index.values
+    == gene_name2
+)[0]
 # plt.figure(figsize=(10, 7))
 plt.subplot(132)
 plt.scatter(np.arange(len(plot_mat)), plot_mat)
@@ -69,17 +77,27 @@ plt.ylabel("Linear model coefficient")
 plt.title("Linear model")
 ax = plt.gca()
 
-plt.text(gene1_idx[0] + 20, plot_mat[gene1_idx] + 0.25, gene_name1.split("_")[1].upper())
-plt.text(gene2_idx[0] + 20, plot_mat[gene2_idx] - 0.25, gene_name2.split("_")[1].upper())
-
+plt.text(
+    gene1_idx[0] + 20, plot_mat[gene1_idx] + 0.25, gene_name1.split("_")[1].upper()
+)
+plt.text(
+    gene2_idx[0] + 20, plot_mat[gene2_idx] - 0.25, gene_name2.split("_")[1].upper()
+)
 
 
 ## Plot CPLVM loadings values
-W_cplvm = pd.read_csv("../../../differential_covariance/clvm/perturbseq_experiments/out/loading_matrices/Hif1a/W_mat.csv", index_col=0)
+W_cplvm = pd.read_csv(
+    "../../../differential_covariance/clvm/perturbseq_experiments/out/loading_matrices/Hif1a/W_mat.csv",
+    index_col=0,
+)
 
 plot_mat = W_cplvm.iloc[:, 2].sort_values(ascending=False).values
-gene1_idx = np.where(W_cplvm.iloc[:, 2].sort_values(ascending=False).index.values == gene_name1)[0]
-gene2_idx = np.where(W_cplvm.iloc[:, 2].sort_values(ascending=False).index.values == gene_name2)[0]
+gene1_idx = np.where(
+    W_cplvm.iloc[:, 2].sort_values(ascending=False).index.values == gene_name1
+)[0]
+gene2_idx = np.where(
+    W_cplvm.iloc[:, 2].sort_values(ascending=False).index.values == gene_name2
+)[0]
 
 plt.subplot(133)
 plt.scatter(np.arange(len(plot_mat)), plot_mat)
@@ -92,13 +110,14 @@ plt.ylabel("CPLVM loading")
 plt.title("CPLVM")
 ax = plt.gca()
 
-plt.text(gene1_idx[0] + 20, plot_mat[gene1_idx] - .5, gene_name1.split("_")[1].upper())
-plt.text(gene2_idx[0] + 20, plot_mat[gene2_idx] - .5, gene_name2.split("_")[1].upper())
+plt.text(gene1_idx[0] + 20, plot_mat[gene1_idx] - 0.5, gene_name1.split("_")[1].upper())
+plt.text(gene2_idx[0] + 20, plot_mat[gene2_idx] - 0.5, gene_name2.split("_")[1].upper())
 
 
 plt.tight_layout()
 plt.savefig("./out/lyz2_vs_ccl4.png")
 plt.show()
 
-import ipdb; ipdb.set_trace()
+import ipdb
 
+ipdb.set_trace()

@@ -5,9 +5,10 @@ import pandas as pd
 from scipy.stats import pearsonr
 
 import matplotlib
-font = {'size': 30}
-matplotlib.rc('font', **font)
-matplotlib.rcParams['text.usetex'] = True
+
+font = {"size": 30}
+matplotlib.rc("font", **font)
+matplotlib.rcParams["text.usetex"] = True
 
 NUM_SETS_TO_PLOT = 8
 gene_name = "HIF1A"
@@ -35,7 +36,7 @@ gene_sets = pd.read_csv("./hallmark_genesets.csv", index_col=0)
 
 
 ### Plot size of each gene set by their enrichments
-gene_sets['set_size'] = [len(x) for x in gene_sets.genes]
+gene_sets["set_size"] = [len(x) for x in gene_sets.genes]
 gene_sets.gene_set = gene_sets.gene_set.str.split("_").str[1:].str.join(" ")
 bf_df = pd.DataFrame({"ebf": treatment_bfs, "gene_set": gene_sets_for_plot})
 
@@ -44,4 +45,6 @@ plot_df = pd.merge(gene_sets, bf_df, on="gene_set")
 plt.scatter(plot_df.set_size.values, plot_df.ebf.values)
 # sns.scatterplot(data=plot_df, x="ebf", y="set_size")
 plt.show()
-import ipdb; ipdb.set_trace()
+import ipdb
+
+ipdb.set_trace()

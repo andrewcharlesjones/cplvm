@@ -4,9 +4,10 @@ import seaborn as sns
 import pandas as pd
 
 import matplotlib
-font = {'size': 30}
-matplotlib.rc('font', **font)
-matplotlib.rcParams['text.usetex'] = True
+
+font = {"size": 30}
+matplotlib.rc("font", **font)
+matplotlib.rcParams["text.usetex"] = True
 
 NUM_SETS_TO_PLOT = 8
 
@@ -23,11 +24,13 @@ plt.title("Nutlin gene set EBFs")
 plt.ylabel("log(EBF)")
 
 
-plt.xticks(np.arange(len(treatment_bfs_to_plot)), labels=gene_sets_for_plot[:len(treatment_bfs)][sorted_idx])
+plt.xticks(
+    np.arange(len(treatment_bfs_to_plot)),
+    labels=gene_sets_for_plot[: len(treatment_bfs)][sorted_idx],
+)
 plt.xticks(rotation=-45, size=20, ha="left")
 plt.tight_layout()
 plt.savefig("./out/nutlin_gene_sets.png")
 # plt.close()
 # plt.show()
 # import ipdb; ipdb.set_trace()
-

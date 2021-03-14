@@ -1,5 +1,6 @@
 import ipdb
 import sys
+
 sys.path.append("../../models")
 from clvm_tfp_poisson_link import fit_model as fit_clvm_link
 from clvm_tfp_poisson import fit_model as fit_clvm_nonnegative
@@ -14,32 +15,30 @@ from sklearn.decomposition import PCA, NMF
 from sklearn.metrics import adjusted_rand_score, silhouette_score
 
 import matplotlib
-font = {'size': 30}
-matplotlib.rc('font', **font)
-matplotlib.rcParams['text.usetex'] = True
+
+font = {"size": 30}
+matplotlib.rc("font", **font)
+matplotlib.rcParams["text.usetex"] = True
 
 
-METHODS = ['PCA', 'NMF', 'CPCA', 'PCPCA', 'CGLVM', 'CPLVM']
+METHODS = ["PCA", "NMF", "CPCA", "PCPCA", "CGLVM", "CPLVM"]
 
 ############ Generate data ############
 
 # Covariance of RVs
-cov_mat = np.array([
-    [2.7, 2.6],
-    [2.6, 2.7]])
+cov_mat = np.array([[2.7, 2.6], [2.6, 2.7]])
 
 n, m = 1000, 1000
 p = 2
 
 
-
-Z = multivariate_normal.rvs(mean=np.zeros(p), cov=cov_mat, size=m//2)
+Z = multivariate_normal.rvs(mean=np.zeros(p), cov=cov_mat, size=m // 2)
 # Z = multivariate_normal.rvs(mean=[4, 2], cov=cov_mat, size=m//2)
 Z_tilde = norm.cdf(Z)
 Y1 = poisson.ppf(q=Z_tilde, mu=10)
 Y1[:, 0] += 8
 
-Z = multivariate_normal.rvs(mean=np.zeros(p), cov=cov_mat, size=m//2)
+Z = multivariate_normal.rvs(mean=np.zeros(p), cov=cov_mat, size=m // 2)
 # Z = multivariate_normal.rvs(mean=[2, 4], cov=cov_mat, size=m//2)
 Z_tilde = norm.cdf(Z)
 Y2 = poisson.ppf(q=Z_tilde, mu=10)
@@ -70,7 +69,7 @@ Y_standardized = (Y - Y.mean(0)) / Y.std(0)
 
 # Labels of the foreground clusters
 true_labels = np.zeros(m)
-true_labels[m//2:] = 1
+true_labels[m // 2 :] = 1
 
 
 plt.figure(figsize=((len(METHODS)) / 2 * 7, 14))
@@ -88,8 +87,16 @@ plt.subplot(2, (len(METHODS) + 1) / 2, 1)
 plt.xlim([-3, 50])
 plt.ylim([-3, 50])
 plt.scatter(X[:, 0], X[:, 1], label="Background", color="gray", alpha=0.8)
-plt.scatter(Y[:m//2, 0], Y[:m//2, 1], label="Foreground group 1", color="green", alpha=0.8)
-plt.scatter(Y[m//2:, 0], Y[m//2:, 1], label="Foreground group 2", color="orange", alpha=0.8)
+plt.scatter(
+    Y[: m // 2, 0], Y[: m // 2, 1], label="Foreground group 1", color="green", alpha=0.8
+)
+plt.scatter(
+    Y[m // 2 :, 0],
+    Y[m // 2 :, 1],
+    label="Foreground group 2",
+    color="orange",
+    alpha=0.8,
+)
 
 Y_mean = np.mean(Y, axis=0)
 W_slope = W_pca[1, 0] / W_pca[0, 0]
@@ -99,10 +106,10 @@ axes = plt.gca()
 xlims = np.array(axes.get_xlim())
 x_vals = np.linspace(xlims[0], xlims[1], 100)
 y_vals = W_slope * x_vals + W_intercept
-plt.plot(x_vals, y_vals, '--', label="W", color="red", linewidth=3)
+plt.plot(x_vals, y_vals, "--", label="W", color="red", linewidth=3)
 plt.xlabel("Gene 1")
 plt.ylabel("Gene 2")
-plt.legend(prop={'size': 20})
+plt.legend(prop={"size": 20})
 
 plt.title("PCA")
 
@@ -111,7 +118,7 @@ ss_pca = silhouette_score(X=pca.fit_transform(Y - Y.mean(0)), labels=true_labels
 
 # Reconstruction error
 recons = pca.transform(Y - Y.mean(0)) @ pca.components_
-recon_error_pca = np.mean(((Y - Y.mean(0)) - recons)**2)
+recon_error_pca = np.mean(((Y - Y.mean(0)) - recons) ** 2)
 
 
 ############ PPCA ############
@@ -126,7 +133,6 @@ recon_error_pca = np.mean(((Y - Y.mean(0)) - recons)**2)
 # plt.scatter(X[:, 0], X[:, 1], label="Background", color="gray", alpha=0.8)
 # plt.scatter(Y[:m//2, 0], Y[:m//2, 1], label="Foreground group 1", color="green", alpha=0.8)
 # plt.scatter(Y[m//2:, 0], Y[m//2:, 1], label="Foreground group 2", color="orange", alpha=0.8)
-
 
 
 # Y_mean = np.mean(Y, axis=0)
@@ -164,8 +170,16 @@ plt.subplot(2, (len(METHODS) + 1) / 2, 2)
 plt.xlim([-3, 50])
 plt.ylim([-3, 50])
 plt.scatter(X[:, 0], X[:, 1], label="Background", color="gray", alpha=0.8)
-plt.scatter(Y[:m//2, 0], Y[:m//2, 1], label="Foreground group 1", color="green", alpha=0.8)
-plt.scatter(Y[m//2:, 0], Y[m//2:, 1], label="Foreground group 2", color="orange", alpha=0.8)
+plt.scatter(
+    Y[: m // 2, 0], Y[: m // 2, 1], label="Foreground group 1", color="green", alpha=0.8
+)
+plt.scatter(
+    Y[m // 2 :, 0],
+    Y[m // 2 :, 1],
+    label="Foreground group 2",
+    color="orange",
+    alpha=0.8,
+)
 
 Y_mean = np.mean(Y, axis=0)
 
@@ -175,7 +189,7 @@ axes = plt.gca()
 ylims = np.array(axes.get_ylim())
 y_vals = np.linspace(ylims[0], ylims[1], 100)
 y_vals = W_slope * x_vals + W_intercept
-plt.plot(x_vals, y_vals, '--', label="W1", color="red", linewidth=3)
+plt.plot(x_vals, y_vals, "--", label="W1", color="red", linewidth=3)
 
 W_slope = W_nmf[1, 1] / (W_nmf[0, 1] + 1e-6)
 W_intercept = Y_mean[1] - Y_mean[0] * W_slope
@@ -183,12 +197,12 @@ axes = plt.gca()
 ylims = np.array(axes.get_ylim())
 y_vals = np.linspace(ylims[0], ylims[1], 100)
 y_vals = W_slope * x_vals + W_intercept
-plt.plot(x_vals, y_vals, '--', label="W2", color="blue", linewidth=3)
+plt.plot(x_vals, y_vals, "--", label="W2", color="blue", linewidth=3)
 # ipdb.set_trace()
 
 plt.xlabel("Gene 1")
 plt.ylabel("Gene 2")
-plt.legend(prop={'size': 20})
+plt.legend(prop={"size": 20})
 
 plt.title("NMF")
 
@@ -198,7 +212,7 @@ ss_nmf = silhouette_score(X=nmf_fg_projections, labels=true_labels)
 
 # Reconstruction error
 recons = nmf.transform(Y) @ nmf.components_
-recon_error_nmf = np.mean((Y - recons)**2)
+recon_error_nmf = np.mean((Y - recons) ** 2)
 
 # ipdb.set_trace()
 
@@ -253,8 +267,16 @@ plt.subplot(2, (len(METHODS) + 1) / 2, 3)
 plt.xlim([-3, 50])
 plt.ylim([-3, 50])
 plt.scatter(X[:, 0], X[:, 1], label="Background", color="gray", alpha=0.8)
-plt.scatter(Y[:m//2, 0], Y[:m//2, 1], label="Foreground group 1", color="green", alpha=0.8)
-plt.scatter(Y[m//2:, 0], Y[m//2:, 1], label="Foreground group 2", color="orange", alpha=0.8)
+plt.scatter(
+    Y[: m // 2, 0], Y[: m // 2, 1], label="Foreground group 1", color="green", alpha=0.8
+)
+plt.scatter(
+    Y[m // 2 :, 0],
+    Y[m // 2 :, 1],
+    label="Foreground group 2",
+    color="orange",
+    alpha=0.8,
+)
 
 
 Y_mean = np.mean(Y, axis=0)
@@ -265,10 +287,10 @@ axes = plt.gca()
 xlims = np.array(axes.get_xlim())
 x_vals = np.linspace(xlims[0], xlims[1], 100)
 y_vals = W_slope * x_vals + W_intercept
-plt.plot(x_vals, y_vals, '--', label="W", color="red", linewidth=3)
+plt.plot(x_vals, y_vals, "--", label="W", color="red", linewidth=3)
 plt.xlabel("Gene 1")
 plt.ylabel("Gene 2")
-plt.legend(prop={'size': 20})
+plt.legend(prop={"size": 20})
 
 plt.title("PCPCA")
 
@@ -279,23 +301,22 @@ ss_pcpca = silhouette_score(X=pcpca_fg_projections, labels=true_labels)
 # Reconstruction error
 recons = (pcpca.W_mle @ pcpca.transform(Y_standardized.T, X_standardized.T)[0]).T
 recons = recons * Y.std(0)
-recon_error_pcpca = np.mean(((Y - Y.mean(0)) - recons)**2)
+recon_error_pcpca = np.mean(((Y - Y.mean(0)) - recons) ** 2)
 
 
 ############ CGLVM ############
 
 # Fit model
-model_dict = fit_clvm_link(
-    X.T, Y.T, 1, 1, compute_size_factors=True, is_H0=False)
+model_dict = fit_clvm_link(X.T, Y.T, 1, 1, compute_size_factors=True, is_H0=False)
 
-W = model_dict['qw_mean'].numpy()
-S = model_dict['qs_mean'].numpy()
+W = model_dict["qw_mean"].numpy()
+S = model_dict["qs_mean"].numpy()
 
-zy = model_dict['qzy_mean'].numpy()
-ty = model_dict['qty_mean'].numpy()
+zy = model_dict["qzy_mean"].numpy()
+ty = model_dict["qty_mean"].numpy()
 
-mu_y = model_dict['qmu_y_mean'].numpy()
-sf_y = model_dict['qsize_factor_y_mean'].numpy()
+mu_y = model_dict["qmu_y_mean"].numpy()
+sf_y = model_dict["qsize_factor_y_mean"].numpy()
 
 
 plt.subplot(2, (len(METHODS) + 1) / 2, 4)
@@ -304,8 +325,16 @@ plt.subplot(2, (len(METHODS) + 1) / 2, 4)
 plt.xlim([-3, 50])
 plt.ylim([-3, 50])
 plt.scatter(X[:, 0], X[:, 1], label="Background", color="gray", alpha=0.8)
-plt.scatter(Y[:m//2, 0], Y[:m//2, 1], label="Foreground group 1", color="green", alpha=0.8)
-plt.scatter(Y[m//2:, 0], Y[m//2:, 1], label="Foreground group 2", color="orange", alpha=0.8)
+plt.scatter(
+    Y[: m // 2, 0], Y[: m // 2, 1], label="Foreground group 1", color="green", alpha=0.8
+)
+plt.scatter(
+    Y[m // 2 :, 0],
+    Y[m // 2 :, 1],
+    label="Foreground group 2",
+    color="orange",
+    alpha=0.8,
+)
 
 # Plot S
 X_mean = np.mean(X, axis=0)
@@ -315,7 +344,7 @@ axes = plt.gca()
 xlims = np.array(axes.get_xlim())
 x_vals = np.linspace(xlims[0], xlims[1], 100)
 y_vals = S_slope * x_vals + S_intercept
-plt.plot(x_vals, y_vals, '--', label="S", color="black", linewidth=3)
+plt.plot(x_vals, y_vals, "--", label="S", color="black", linewidth=3)
 
 
 Y_mean = np.mean(Y, axis=0)
@@ -326,13 +355,13 @@ axes = plt.gca()
 ylims = np.array(axes.get_ylim())
 y_vals = np.linspace(ylims[0], ylims[1], 100)
 y_vals = W_slope * x_vals + W_intercept
-plt.plot(x_vals, y_vals, '--', label="W", color="red", linewidth=3)
+plt.plot(x_vals, y_vals, "--", label="W", color="red", linewidth=3)
 
 
 plt.title("CGLVM")
 plt.xlabel("Gene 1")
 plt.ylabel("Gene 2")
-plt.legend(prop={'size': 20})
+plt.legend(prop={"size": 20})
 
 
 # Silhouette score
@@ -341,31 +370,30 @@ ss_cglvm = silhouette_score(X=cglvm_fg_projections, labels=true_labels)
 
 # Reconstruction error
 recons = np.exp(S @ zy + W @ ty + np.log(sf_y) + mu_y)
-recon_error_cglvm = np.mean((Y - recons.T)**2)
-
+recon_error_cglvm = np.mean((Y - recons.T) ** 2)
 
 
 ############ CPLVM ############
 
 # Fit model
 model_dict = fit_clvm_nonnegative(
-    X.T, Y.T, 1, 2, compute_size_factors=True, is_H0=False, offset_term=False)
+    X.T, Y.T, 1, 2, compute_size_factors=True, is_H0=False, offset_term=False
+)
 
-W = np.exp(model_dict['qw_mean'].numpy() + model_dict['qw_stddv'].numpy()**2)
-S = np.exp(model_dict['qs_mean'].numpy() + model_dict['qs_stddv'].numpy()**2)
+W = np.exp(model_dict["qw_mean"].numpy() + model_dict["qw_stddv"].numpy() ** 2)
+S = np.exp(model_dict["qs_mean"].numpy() + model_dict["qs_stddv"].numpy() ** 2)
 
-zx = np.exp(model_dict['qzx_mean'].numpy() + model_dict['qzx_stddv'].numpy()**2)
-zy = np.exp(model_dict['qzy_mean'].numpy() + model_dict['qzy_stddv'].numpy()**2)
-ty = np.exp(model_dict['qty_mean'].numpy() + model_dict['qty_stddv'].numpy()**2)
+zx = np.exp(model_dict["qzx_mean"].numpy() + model_dict["qzx_stddv"].numpy() ** 2)
+zy = np.exp(model_dict["qzy_mean"].numpy() + model_dict["qzy_stddv"].numpy() ** 2)
+ty = np.exp(model_dict["qty_mean"].numpy() + model_dict["qty_stddv"].numpy() ** 2)
 
-sf_y = np.exp(model_dict['qsize_factors_y_mean'].numpy() + model_dict['qsize_factor_y_stddv'].numpy()**2)
-
+sf_y = np.exp(
+    model_dict["qsize_factors_y_mean"].numpy()
+    + model_dict["qsize_factor_y_stddv"].numpy() ** 2
+)
 
 
 # deltax = np.exp(model_dict['qdeltax_mean'].numpy() + model_dict['qdeltax_stddv'].numpy()**2)
-
-
-
 
 
 plt.subplot(2, (len(METHODS) + 1) / 2, 5)
@@ -374,8 +402,16 @@ plt.subplot(2, (len(METHODS) + 1) / 2, 5)
 plt.xlim([-3, 50])
 plt.ylim([-3, 50])
 plt.scatter(X[:, 0], X[:, 1], label="Background", color="gray", alpha=0.8)
-plt.scatter(Y[:m//2, 0], Y[:m//2, 1], label="Foreground group 1", color="green", alpha=0.8)
-plt.scatter(Y[m//2:, 0], Y[m//2:, 1], label="Foreground group 2", color="orange", alpha=0.8)
+plt.scatter(
+    Y[: m // 2, 0], Y[: m // 2, 1], label="Foreground group 1", color="green", alpha=0.8
+)
+plt.scatter(
+    Y[m // 2 :, 0],
+    Y[m // 2 :, 1],
+    label="Foreground group 2",
+    color="orange",
+    alpha=0.8,
+)
 
 X_mean = np.mean(X, axis=0)
 S_slope = S[1, 0] / S[0, 0]
@@ -384,7 +420,7 @@ axes = plt.gca()
 xlims = np.array(axes.get_xlim())
 x_vals = np.linspace(xlims[0], xlims[1], 100)
 y_vals = S_slope * x_vals + S_intercept
-plt.plot(x_vals, y_vals, '--', label="S", color="black", linewidth=3)
+plt.plot(x_vals, y_vals, "--", label="S", color="black", linewidth=3)
 
 
 Y_mean = np.mean(Y, axis=0)
@@ -395,7 +431,7 @@ axes = plt.gca()
 ylims = np.array(axes.get_ylim())
 y_vals = np.linspace(ylims[0], ylims[1], 100)
 y_vals = W_slope * x_vals + W_intercept
-plt.plot(x_vals, y_vals, '--', label="W1", color="red", linewidth=3)
+plt.plot(x_vals, y_vals, "--", label="W1", color="red", linewidth=3)
 
 W_slope = W[1, 1] / W[0, 1]
 W_intercept = Y_mean[1] - Y_mean[0] * W_slope
@@ -403,30 +439,39 @@ axes = plt.gca()
 ylims = np.array(axes.get_ylim())
 y_vals = np.linspace(ylims[0], ylims[1], 100)
 y_vals = W_slope * x_vals + W_intercept
-plt.plot(x_vals, y_vals, '--', label="W2", color="blue", linewidth=3)
+plt.plot(x_vals, y_vals, "--", label="W2", color="blue", linewidth=3)
 
 plt.title("CPLVM")
 plt.xlabel("Gene 1")
 plt.ylabel("Gene 2")
-plt.legend(prop={'size': 20})
+plt.legend(prop={"size": 20})
 
 # Silhouette score
 cplvm_fg_projections = ty.T
 ss_cplvm = silhouette_score(X=cplvm_fg_projections, labels=true_labels)
 
 # Reconstruction error
-recons = S @ zy + W @ ty #np.multiply(S @ zy + W @ ty) #, sf_y)
-recon_error_cplvm = np.mean((Y - recons.T)**2)
+recons = S @ zy + W @ ty  # np.multiply(S @ zy + W @ ty) #, sf_y)
+recon_error_cplvm = np.mean((Y - recons.T) ** 2)
 # ipdb.set_trace()
 
 
-METHODS = ['PCA', 'NMF', 'PCPCA', 'CGLVM', 'CPLVM']
+METHODS = ["PCA", "NMF", "PCPCA", "CGLVM", "CPLVM"]
 
 
 plt.subplot(2, (len(METHODS) + 1) / 2, 6)
 
 # plt.bar(np.arange(len(METHODS)), [ss_pca, ss_ppca, ss_nmf, ss_cpca, ss_pcpca, ss_cglvm, ss_cplvm])
-plt.bar(np.arange(len(METHODS)), [recon_error_pca, recon_error_nmf, recon_error_pcpca, recon_error_cglvm, recon_error_cplvm])
+plt.bar(
+    np.arange(len(METHODS)),
+    [
+        recon_error_pca,
+        recon_error_nmf,
+        recon_error_pcpca,
+        recon_error_cglvm,
+        recon_error_cplvm,
+    ],
+)
 plt.xticks(np.arange(len(METHODS)), labels=METHODS)
 plt.xticks(rotation=90)
 plt.ylabel("Silhouette score")
@@ -453,10 +498,8 @@ plt.ylabel("Silhouette score")
 # plt.ylabel("Data dim 2")
 
 
-
 plt.tight_layout()
 plt.savefig("./out/toy_example_cplvm_neg_corr.png")
 plt.show()
 
 ipdb.set_trace()
-

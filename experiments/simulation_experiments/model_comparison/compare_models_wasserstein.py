@@ -1,4 +1,5 @@
 import sys
+
 sys.path.append("../../models")
 
 from mimosca_gaussian import fit_model as fit_mimosca_gaussian
@@ -34,14 +35,15 @@ from pcpca import CPCA
 
 
 import matplotlib
-font = {'size': 30}
-matplotlib.rc('font', **font)
-matplotlib.rcParams['text.usetex'] = True
+
+font = {"size": 30}
+matplotlib.rc("font", **font)
+matplotlib.rcParams["text.usetex"] = True
 
 
 tf.enable_v2_behavior()
 
-warnings.filterwarnings('ignore')
+warnings.filterwarnings("ignore")
 
 
 if __name__ == "__main__":
@@ -67,15 +69,17 @@ if __name__ == "__main__":
     error_list_cglvm_bg = []
     for ii in range(NUM_REPEATS):
 
-        concrete_clvm_model = functools.partial(clvm_nonnegative,
-                                                data_dim=data_dim,
-                                                latent_dim_shared=latent_dim_shared,
-                                                latent_dim_target=latent_dim_target,
-                                                num_datapoints_x=num_datapoints_x,
-                                                num_datapoints_y=num_datapoints_y,
-                                                counts_per_cell_X=1,
-                                                counts_per_cell_Y=1,
-                                                is_H0=False)
+        concrete_clvm_model = functools.partial(
+            clvm_nonnegative,
+            data_dim=data_dim,
+            latent_dim_shared=latent_dim_shared,
+            latent_dim_target=latent_dim_target,
+            num_datapoints_x=num_datapoints_x,
+            num_datapoints_y=num_datapoints_y,
+            counts_per_cell_X=1,
+            counts_per_cell_Y=1,
+            is_H0=False,
+        )
 
         model = tfd.JointDistributionCoroutineAutoBatched(concrete_clvm_model)
 
@@ -84,7 +88,6 @@ if __name__ == "__main__":
         X, Y = X_sampled.numpy(), Y_sampled.numpy()
         ty_truth = samples[-3].numpy()
         zx_truth = samples[-6].numpy()
-
 
         # ------ RUN MODELS ---------
 
@@ -106,7 +109,9 @@ if __name__ == "__main__":
         # Compute Wasserstein distance
         w_dists = []
         for ii in range(num_datapoints_y):
-            curr_dist = wasserstein_distance(distance_mat_normalized_truth[ii, :], distance_mat_normalized[ii, :])
+            curr_dist = wasserstein_distance(
+                distance_mat_normalized_truth[ii, :], distance_mat_normalized[ii, :]
+            )
             w_dists.append(curr_dist)
 
         w_dist_pca = np.mean(w_dists)
@@ -130,7 +135,9 @@ if __name__ == "__main__":
         # Compute Wasserstein distance
         w_dists = []
         for ii in range(num_datapoints_y):
-            curr_dist = wasserstein_distance(distance_mat_normalized_truth[ii, :], distance_mat_normalized[ii, :])
+            curr_dist = wasserstein_distance(
+                distance_mat_normalized_truth[ii, :], distance_mat_normalized[ii, :]
+            )
             w_dists.append(curr_dist)
 
         w_dist_pca = np.mean(w_dists)
@@ -156,7 +163,9 @@ if __name__ == "__main__":
         # Compute Wasserstein distance
         w_dists = []
         for ii in range(num_datapoints_y):
-            curr_dist = wasserstein_distance(distance_mat_normalized_truth[ii, :], distance_mat_normalized[ii, :])
+            curr_dist = wasserstein_distance(
+                distance_mat_normalized_truth[ii, :], distance_mat_normalized[ii, :]
+            )
             w_dists.append(curr_dist)
 
         w_dist_pca = np.mean(w_dists)
@@ -180,7 +189,9 @@ if __name__ == "__main__":
         # Compute Wasserstein distance
         w_dists = []
         for ii in range(num_datapoints_y):
-            curr_dist = wasserstein_distance(distance_mat_normalized_truth[ii, :], distance_mat_normalized[ii, :])
+            curr_dist = wasserstein_distance(
+                distance_mat_normalized_truth[ii, :], distance_mat_normalized[ii, :]
+            )
             w_dists.append(curr_dist)
 
         w_dist_pca = np.mean(w_dists)
@@ -206,14 +217,15 @@ if __name__ == "__main__":
         # Compute Wasserstein distance
         w_dists = []
         for ii in range(num_datapoints_y):
-            curr_dist = wasserstein_distance(distance_mat_normalized_truth[ii, :], distance_mat_normalized[ii, :])
+            curr_dist = wasserstein_distance(
+                distance_mat_normalized_truth[ii, :], distance_mat_normalized[ii, :]
+            )
             w_dists.append(curr_dist)
 
         w_dist_cpca = np.mean(w_dists)
 
         print("Error CPCA: ", w_dist_cpca)
         error_list_cpca.append(w_dist_cpca)
-
 
         # Background
         cpca = CPCA(n_components=latent_dim_target, gamma=0.9)
@@ -231,7 +243,9 @@ if __name__ == "__main__":
         # Compute Wasserstein distance
         w_dists = []
         for ii in range(num_datapoints_y):
-            curr_dist = wasserstein_distance(distance_mat_normalized_truth[ii, :], distance_mat_normalized[ii, :])
+            curr_dist = wasserstein_distance(
+                distance_mat_normalized_truth[ii, :], distance_mat_normalized[ii, :]
+            )
             w_dists.append(curr_dist)
 
         w_dist_cpca = np.mean(w_dists)
@@ -239,20 +253,37 @@ if __name__ == "__main__":
         print("Error CPCA: ", w_dist_cpca)
         error_list_cpca_bg.append(w_dist_cpca)
 
-
         ##### Nonnegative poisson clVM #####
         model_dict_clvm_nonnegative_poisson = fit_clvm_nonnegative(
-            X, Y, latent_dim_shared, latent_dim_target, compute_size_factors=True, is_H0=False, offset_term=False)
-        ELBO_clvm_poisson_nonnegative = -1 * \
-            model_dict_clvm_nonnegative_poisson['loss_trace'][-1].numpy() / (
-                num_datapoints_x + num_datapoints_y)
+            X,
+            Y,
+            latent_dim_shared,
+            latent_dim_target,
+            compute_size_factors=True,
+            is_H0=False,
+            offset_term=False,
+        )
+        ELBO_clvm_poisson_nonnegative = (
+            -1
+            * model_dict_clvm_nonnegative_poisson["loss_trace"][-1].numpy()
+            / (num_datapoints_x + num_datapoints_y)
+        )
 
         # Test LL
 
         # Get fitted loadings matrices
-        zx = np.exp(model_dict_clvm_nonnegative_poisson['qzx_mean'].numpy() + model_dict_clvm_nonnegative_poisson['qzx_stddv'].numpy()**2)
-        zy = np.exp(model_dict_clvm_nonnegative_poisson['qzy_mean'].numpy() + model_dict_clvm_nonnegative_poisson['qzy_stddv'].numpy()**2)
-        ty = np.exp(model_dict_clvm_nonnegative_poisson['qty_mean'].numpy() + model_dict_clvm_nonnegative_poisson['qty_stddv'].numpy()**2)
+        zx = np.exp(
+            model_dict_clvm_nonnegative_poisson["qzx_mean"].numpy()
+            + model_dict_clvm_nonnegative_poisson["qzx_stddv"].numpy() ** 2
+        )
+        zy = np.exp(
+            model_dict_clvm_nonnegative_poisson["qzy_mean"].numpy()
+            + model_dict_clvm_nonnegative_poisson["qzy_stddv"].numpy() ** 2
+        )
+        ty = np.exp(
+            model_dict_clvm_nonnegative_poisson["qty_mean"].numpy()
+            + model_dict_clvm_nonnegative_poisson["qty_stddv"].numpy() ** 2
+        )
 
         # Foreground
         # Estimated distance matrix
@@ -268,12 +299,13 @@ if __name__ == "__main__":
         # Compute Wasserstein distance
         w_dists = []
         for ii in range(num_datapoints_y):
-            curr_dist = wasserstein_distance(distance_mat_normalized_truth[ii, :], distance_mat_normalized[ii, :])
+            curr_dist = wasserstein_distance(
+                distance_mat_normalized_truth[ii, :], distance_mat_normalized[ii, :]
+            )
             w_dists.append(curr_dist)
 
         w_dist_cplvm = np.mean(w_dists)
 
-        
         print("Error CPLVM: ", w_dist_cplvm)
         error_list_cplvm.append(w_dist_cplvm)
 
@@ -291,33 +323,37 @@ if __name__ == "__main__":
         # Compute Wasserstein distance
         w_dists = []
         for ii in range(num_datapoints_y):
-            curr_dist = wasserstein_distance(distance_mat_normalized_truth[ii, :], distance_mat_normalized[ii, :])
+            curr_dist = wasserstein_distance(
+                distance_mat_normalized_truth[ii, :], distance_mat_normalized[ii, :]
+            )
             w_dists.append(curr_dist)
 
         w_dist_cplvm = np.mean(w_dists)
 
-        
         print("Error CPLVM: ", w_dist_cplvm)
         error_list_cplvm_bg.append(w_dist_cplvm)
         # import ipdb; ipdb.set_trace()
 
-
-
-
         ##### Poisson link clVM #####
 
         model_dict_clvm_poisson_link = fit_clvm_link_map(
-            X, Y, latent_dim_shared, latent_dim_target, compute_size_factors=True, is_H0=False)
+            X,
+            Y,
+            latent_dim_shared,
+            latent_dim_target,
+            compute_size_factors=True,
+            is_H0=False,
+        )
 
         # Get fitted loadings matrices
-        W = model_dict_clvm_poisson_link['w'].numpy()
-        S = model_dict_clvm_poisson_link['s'].numpy()
-        mu_x = model_dict_clvm_poisson_link['mu_x'].numpy()
-        mu_y = model_dict_clvm_poisson_link['mu_y'].numpy()
+        W = model_dict_clvm_poisson_link["w"].numpy()
+        S = model_dict_clvm_poisson_link["s"].numpy()
+        mu_x = model_dict_clvm_poisson_link["mu_x"].numpy()
+        mu_y = model_dict_clvm_poisson_link["mu_y"].numpy()
 
-        zx = model_dict_clvm_poisson_link['zx'].numpy()
-        zy = model_dict_clvm_poisson_link['zy'].numpy()
-        ty = model_dict_clvm_poisson_link['ty'].numpy()
+        zx = model_dict_clvm_poisson_link["zx"].numpy()
+        zy = model_dict_clvm_poisson_link["zy"].numpy()
+        ty = model_dict_clvm_poisson_link["ty"].numpy()
 
         # Foreground
         # Estimated distance matrix
@@ -333,12 +369,13 @@ if __name__ == "__main__":
         # Compute Wasserstein distance
         w_dists = []
         for ii in range(num_datapoints_y):
-            curr_dist = wasserstein_distance(distance_mat_normalized_truth[ii, :], distance_mat_normalized[ii, :])
+            curr_dist = wasserstein_distance(
+                distance_mat_normalized_truth[ii, :], distance_mat_normalized[ii, :]
+            )
             w_dists.append(curr_dist)
 
         w_dist_cglvm = np.mean(w_dists)
 
-        
         print("Error CPLVM: ", w_dist_cglvm)
         error_list_cglvm.append(w_dist_cglvm)
 
@@ -356,12 +393,13 @@ if __name__ == "__main__":
         # Compute Wasserstein distance
         w_dists = []
         for ii in range(num_datapoints_y):
-            curr_dist = wasserstein_distance(distance_mat_normalized_truth[ii, :], distance_mat_normalized[ii, :])
+            curr_dist = wasserstein_distance(
+                distance_mat_normalized_truth[ii, :], distance_mat_normalized[ii, :]
+            )
             w_dists.append(curr_dist)
 
         w_dist_cglvm = np.mean(w_dists)
 
-        
         print("Error CPLVM: ", w_dist_cglvm)
         error_list_cglvm_bg.append(w_dist_cglvm)
 
@@ -369,16 +407,27 @@ if __name__ == "__main__":
 
         plt.figure(figsize=(18, 6))
 
-
         plt.subplot(121)
-        error_list = [error_list_pca, error_list_nmf, error_list_cpca, error_list_cglvm, error_list_cplvm]
+        error_list = [
+            error_list_pca,
+            error_list_nmf,
+            error_list_cpca,
+            error_list_cglvm,
+            error_list_cplvm,
+        ]
         sns.boxplot(np.arange(len(error_list)), error_list)
         plt.xticks(np.arange(len(error_list)), labels=method_list)
         plt.ylabel("Avg. Wasserstein distance")
         plt.title("Foreground")
 
         plt.subplot(122)
-        error_list = [error_list_pca_bg, error_list_nmf_bg, error_list_cpca_bg, error_list_cglvm_bg, error_list_cplvm_bg]
+        error_list = [
+            error_list_pca_bg,
+            error_list_nmf_bg,
+            error_list_cpca_bg,
+            error_list_cglvm_bg,
+            error_list_cplvm_bg,
+        ]
         sns.boxplot(np.arange(len(error_list)), error_list)
         plt.xticks(np.arange(len(error_list)), labels=method_list)
         plt.ylabel("Avg. Wasserstein distance")

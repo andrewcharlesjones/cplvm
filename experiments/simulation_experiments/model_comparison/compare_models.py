@@ -1,4 +1,5 @@
 import sys
+
 sys.path.append("../../models")
 
 from mimosca_gaussian import fit_model as fit_mimosca_gaussian
@@ -29,14 +30,15 @@ from tensorflow_probability import bijectors as tfb
 
 
 import matplotlib
-font = {'size': 30}
-matplotlib.rc('font', **font)
-matplotlib.rcParams['text.usetex'] = True
+
+font = {"size": 30}
+matplotlib.rc("font", **font)
+matplotlib.rcParams["text.usetex"] = True
 
 
 tf.enable_v2_behavior()
 
-warnings.filterwarnings('ignore')
+warnings.filterwarnings("ignore")
 
 
 if __name__ == "__main__":
@@ -59,15 +61,17 @@ if __name__ == "__main__":
     error_list_glm = []
     for ii in range(NUM_REPEATS):
 
-        concrete_clvm_model = functools.partial(clvm_nonnegative,
-                                                data_dim=data_dim,
-                                                latent_dim_shared=latent_dim_shared,
-                                                latent_dim_target=latent_dim_target,
-                                                num_datapoints_x=num_datapoints_x,
-                                                num_datapoints_y=num_datapoints_y,
-                                                counts_per_cell_X=1,
-                                                counts_per_cell_Y=1,
-                                                is_H0=False)
+        concrete_clvm_model = functools.partial(
+            clvm_nonnegative,
+            data_dim=data_dim,
+            latent_dim_shared=latent_dim_shared,
+            latent_dim_target=latent_dim_target,
+            num_datapoints_x=num_datapoints_x,
+            num_datapoints_y=num_datapoints_y,
+            counts_per_cell_X=1,
+            counts_per_cell_Y=1,
+            is_H0=False,
+        )
 
         model = tfd.JointDistributionCoroutineAutoBatched(concrete_clvm_model)
 
@@ -81,33 +85,59 @@ if __name__ == "__main__":
         # num_datapoints_x_test = X_test.shape[1]
         # num_datapoints_y_test = Y_test.shape[1]
 
-
-
-        
-
         # ------ RUN MODELS ---------
 
         # Nonnegative poisson clVM
         model_dict_clvm_nonnegative_poisson = fit_clvm_nonnegative(
-            X, Y, latent_dim_shared, latent_dim_target, compute_size_factors=True, is_H0=False, offset_term=False)
-        ELBO_clvm_poisson_nonnegative = -1 * \
-            model_dict_clvm_nonnegative_poisson['loss_trace'][-1].numpy() / (
-                num_datapoints_x + num_datapoints_y)
+            X,
+            Y,
+            latent_dim_shared,
+            latent_dim_target,
+            compute_size_factors=True,
+            is_H0=False,
+            offset_term=False,
+        )
+        ELBO_clvm_poisson_nonnegative = (
+            -1
+            * model_dict_clvm_nonnegative_poisson["loss_trace"][-1].numpy()
+            / (num_datapoints_x + num_datapoints_y)
+        )
         # print("ELBO_clvm_poisson_nonnegative: {}".format(
         #     ELBO_clvm_poisson_nonnegative))
 
         # ## Test LL
 
         # Get fitted loadings matrices
-        W = np.exp(model_dict_clvm_nonnegative_poisson['qw_mean'].numpy() + model_dict_clvm_nonnegative_poisson['qw_stddv'].numpy()**2)
-        S = np.exp(model_dict_clvm_nonnegative_poisson['qs_mean'].numpy() + model_dict_clvm_nonnegative_poisson['qs_stddv'].numpy()**2)
+        W = np.exp(
+            model_dict_clvm_nonnegative_poisson["qw_mean"].numpy()
+            + model_dict_clvm_nonnegative_poisson["qw_stddv"].numpy() ** 2
+        )
+        S = np.exp(
+            model_dict_clvm_nonnegative_poisson["qs_mean"].numpy()
+            + model_dict_clvm_nonnegative_poisson["qs_stddv"].numpy() ** 2
+        )
 
-        zx = np.exp(model_dict_clvm_nonnegative_poisson['qzx_mean'].numpy() + model_dict_clvm_nonnegative_poisson['qzx_stddv'].numpy()**2)
-        zy = np.exp(model_dict_clvm_nonnegative_poisson['qzy_mean'].numpy() + model_dict_clvm_nonnegative_poisson['qzy_stddv'].numpy()**2)
-        ty = np.exp(model_dict_clvm_nonnegative_poisson['qty_mean'].numpy() + model_dict_clvm_nonnegative_poisson['qty_stddv'].numpy()**2)
+        zx = np.exp(
+            model_dict_clvm_nonnegative_poisson["qzx_mean"].numpy()
+            + model_dict_clvm_nonnegative_poisson["qzx_stddv"].numpy() ** 2
+        )
+        zy = np.exp(
+            model_dict_clvm_nonnegative_poisson["qzy_mean"].numpy()
+            + model_dict_clvm_nonnegative_poisson["qzy_stddv"].numpy() ** 2
+        )
+        ty = np.exp(
+            model_dict_clvm_nonnegative_poisson["qty_mean"].numpy()
+            + model_dict_clvm_nonnegative_poisson["qty_stddv"].numpy() ** 2
+        )
 
-        sf_x = np.exp(model_dict_clvm_nonnegative_poisson['qsize_factors_x_mean'].numpy() + model_dict_clvm_nonnegative_poisson['qsize_factor_x_stddv'].numpy()**2)
-        sf_y = np.exp(model_dict_clvm_nonnegative_poisson['qsize_factors_y_mean'].numpy() + model_dict_clvm_nonnegative_poisson['qsize_factor_y_stddv'].numpy()**2)
+        sf_x = np.exp(
+            model_dict_clvm_nonnegative_poisson["qsize_factors_x_mean"].numpy()
+            + model_dict_clvm_nonnegative_poisson["qsize_factor_x_stddv"].numpy() ** 2
+        )
+        sf_y = np.exp(
+            model_dict_clvm_nonnegative_poisson["qsize_factors_y_mean"].numpy()
+            + model_dict_clvm_nonnegative_poisson["qsize_factor_y_stddv"].numpy() ** 2
+        )
 
         # Compute reconstructions
         x_rate = np.multiply(S @ zx, sf_x)
@@ -117,15 +147,18 @@ if __name__ == "__main__":
         truth = np.concatenate([X, Y], axis=1)
 
         # Compute reconstruction error
-        error_cplvm = np.mean((truth - preds)**2)
+        error_cplvm = np.mean((truth - preds) ** 2)
         print("Error CPLVM: ", error_cplvm)
-
-
-
 
         # Poisson link clVM
         model_dict_clvm_poisson_link = fit_clvm_link_map(
-            X, Y, latent_dim_shared, latent_dim_target, compute_size_factors=True, is_H0=False)
+            X,
+            Y,
+            latent_dim_shared,
+            latent_dim_target,
+            compute_size_factors=True,
+            is_H0=False,
+        )
         # ELBO_clvm_poisson_link = -1 * \
         #     model_dict_clvm_poisson_link['loss_trace'][-1].numpy() / \
         #     (num_datapoints_x + num_datapoints_y)
@@ -146,29 +179,27 @@ if __name__ == "__main__":
         # sf_y = np.exp(model_dict_clvm_poisson_link['qsize_factor_y_mean'].numpy() + model_dict_clvm_poisson_link['qsize_factor_y_stddv'].numpy()**2)
 
         # Get fitted loadings matrices
-        W = model_dict_clvm_poisson_link['w'].numpy()
-        S = model_dict_clvm_poisson_link['s'].numpy()
-        mu_x = model_dict_clvm_poisson_link['mu_x'].numpy()
-        mu_y = model_dict_clvm_poisson_link['mu_y'].numpy()
+        W = model_dict_clvm_poisson_link["w"].numpy()
+        S = model_dict_clvm_poisson_link["s"].numpy()
+        mu_x = model_dict_clvm_poisson_link["mu_x"].numpy()
+        mu_y = model_dict_clvm_poisson_link["mu_y"].numpy()
 
-        zx = model_dict_clvm_poisson_link['zx'].numpy()
-        zy = model_dict_clvm_poisson_link['zy'].numpy()
-        ty = model_dict_clvm_poisson_link['ty'].numpy()
+        zx = model_dict_clvm_poisson_link["zx"].numpy()
+        zy = model_dict_clvm_poisson_link["zy"].numpy()
+        ty = model_dict_clvm_poisson_link["ty"].numpy()
 
         # Compute predictions
-        x_rate = np.exp(S @ zx + mu_x) # + np.log(sf_x))
-        y_rate = np.exp(S @ zy + W @ ty + mu_y) #+ np.log(sf_y))
+        x_rate = np.exp(S @ zx + mu_x)  # + np.log(sf_x))
+        y_rate = np.exp(S @ zy + W @ ty + mu_y)  # + np.log(sf_y))
 
         preds = np.concatenate([x_rate, y_rate], axis=1)
 
         truth = np.concatenate([X, Y], axis=1)
 
         # Compute reconstruction error
-        error_cglvm = np.mean((truth - preds)**2)
+        error_cglvm = np.mean((truth - preds) ** 2)
         print("Error CGLVM: ", error_cglvm)
         # import ipdb; ipdb.set_trace()
-        
-
 
         # Gaussian cLVM
         # model_dict_clvm_gaussian = fit_clvm_gaussian(
@@ -180,7 +211,8 @@ if __name__ == "__main__":
 
         # # Poisson MIMOSCA
         model_dict_mimosca_poisson_link = fit_mimosca_poisson_link(
-            X, Y, compute_size_factors=True, is_H0=False)
+            X, Y, compute_size_factors=True, is_H0=False
+        )
         # ELBO_mimosca_poisson_link = -1 * \
         #     model_dict_mimosca_poisson_link['loss_trace'][-1].numpy() / (
         #         num_datapoints_x + num_datapoints_y)
@@ -189,20 +221,22 @@ if __name__ == "__main__":
         ## Test LL
 
         # Get fitted loadings matrices
-        mu = model_dict_mimosca_poisson_link['qmu_mean'].numpy()
-        beta = model_dict_mimosca_poisson_link['qbeta_mean'].numpy()
-        sf = np.exp(model_dict_mimosca_poisson_link['qsize_factor_mean'].numpy() + model_dict_mimosca_poisson_link['qsize_factor_stddv'].numpy()**2)
-
+        mu = model_dict_mimosca_poisson_link["qmu_mean"].numpy()
+        beta = model_dict_mimosca_poisson_link["qbeta_mean"].numpy()
+        sf = np.exp(
+            model_dict_mimosca_poisson_link["qsize_factor_mean"].numpy()
+            + model_dict_mimosca_poisson_link["qsize_factor_stddv"].numpy() ** 2
+        )
 
         # Compute reconstructions
         dummy = np.zeros(X.shape[1] + Y.shape[1])
-        dummy[X.shape[1]:] = 1
+        dummy[X.shape[1] :] = 1
         dummy = np.expand_dims(dummy, 0)
-        preds = np.exp(beta @ dummy + mu) # + np.log(sf))
+        preds = np.exp(beta @ dummy + mu)  # + np.log(sf))
 
         # Compute error
         truth = np.concatenate([X, Y], axis=1)
-        error_glm = np.mean((truth - preds)**2)
+        error_glm = np.mean((truth - preds) ** 2)
         print("Error Poisson GLM: ", error_glm)
 
         # import ipdb; ipdb.set_trace()
@@ -229,8 +263,9 @@ if __name__ == "__main__":
         plt.figure(figsize=(9, 6))
         # import ipdb; ipdb.set_trace()
         sns.boxplot(np.arange(len(error_list)), error_list)
-        plt.xticks(np.arange(len(error_list)), labels=[
-                   "CPLVM", "CGLVM", "Poisson\nGLM"])
+        plt.xticks(
+            np.arange(len(error_list)), labels=["CPLVM", "CGLVM", "Poisson\nGLM"]
+        )
         plt.ylabel("Error")
         plt.tight_layout()
         plt.savefig("./out/model_comparison.png")

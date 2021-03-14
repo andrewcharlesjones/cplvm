@@ -14,9 +14,10 @@ else:
 from cplvm import CPLVM
 
 import matplotlib
-font = {'size': 30}
-matplotlib.rc('font', **font)
-matplotlib.rcParams['text.usetex'] = True
+
+font = {"size": 30}
+matplotlib.rc("font", **font)
+matplotlib.rcParams["text.usetex"] = True
 
 
 if __name__ == "__main__":
@@ -66,20 +67,27 @@ if __name__ == "__main__":
 
         curr_control_bfs = []
         for _ in range(num_null_repeats):
-            cplvm = CPLVM(k_shared=latent_dim_shared, k_foreground=latent_dim_foreground)
+            cplvm = CPLVM(
+                k_shared=latent_dim_shared, k_foreground=latent_dim_foreground
+            )
 
-            H1_results = cplvm.fit_model_vi(X, Y, compute_size_factors=True, is_H0=False)
+            H1_results = cplvm.fit_model_vi(
+                X, Y, compute_size_factors=True, is_H0=False
+            )
             H0_results = cplvm.fit_model_vi(X, Y, compute_size_factors=True, is_H0=True)
 
-            H1_elbo = -1 * H1_results['loss_trace'][-1].numpy() / (X.shape[1] + Y.shape[1])
-            H0_elbo = -1 * H0_results['loss_trace'][-1].numpy() / (X.shape[1] + Y.shape[1])
+            H1_elbo = (
+                -1 * H1_results["loss_trace"][-1].numpy() / (X.shape[1] + Y.shape[1])
+            )
+            H0_elbo = (
+                -1 * H0_results["loss_trace"][-1].numpy() / (X.shape[1] + Y.shape[1])
+            )
 
             curr_bf = H1_elbo - H0_elbo
             curr_control_bfs.append(curr_bf)
             print("{} control BF: {}".format(gene_name, curr_bf))
         control_bfs.append(np.mean(curr_control_bfs))
         control_bf_stds.append(np.std(curr_control_bfs))
-
 
         print("{} control BF: {}".format(gene_name, np.mean(curr_control_bfs)))
 
@@ -90,12 +98,24 @@ if __name__ == "__main__":
         Y = pd.read_csv(Y_fname, index_col=0).values.T
 
         H1_results = fit_clvm(
-            X, Y, latent_dim_shared, latent_dim_target, compute_size_factors=True, is_H0=False)
+            X,
+            Y,
+            latent_dim_shared,
+            latent_dim_target,
+            compute_size_factors=True,
+            is_H0=False,
+        )
         H0_results = fit_clvm(
-            X, Y, latent_dim_shared, latent_dim_target, compute_size_factors=True, is_H0=True)
+            X,
+            Y,
+            latent_dim_shared,
+            latent_dim_target,
+            compute_size_factors=True,
+            is_H0=True,
+        )
 
-        H1_elbo = -1 * H1_results['loss_trace'][-1].numpy() / (X.shape[1] + Y.shape[1])
-        H0_elbo = -1 * H0_results['loss_trace'][-1].numpy() / (X.shape[1] + Y.shape[1])
+        H1_elbo = -1 * H1_results["loss_trace"][-1].numpy() / (X.shape[1] + Y.shape[1])
+        H0_elbo = -1 * H0_results["loss_trace"][-1].numpy() / (X.shape[1] + Y.shape[1])
 
         curr_treatment_bf = H1_elbo - H0_elbo
 
@@ -103,12 +123,16 @@ if __name__ == "__main__":
 
         print("{} treatment BF: {}".format(gene_name, curr_treatment_bf))
 
-
         gene_names_so_far.append(gene_name.upper())
 
         # Make paired barplot for each gene
         bf_df = pd.DataFrame(
-            {"gene": gene_names_so_far, "control_bf": control_bfs, "treatment_bf": treatment_bfs})
+            {
+                "gene": gene_names_so_far,
+                "control_bf": control_bfs,
+                "treatment_bf": treatment_bfs,
+            }
+        )
         bf_df_melted = pd.melt(bf_df, id_vars="gene")
 
         N = bf_df.shape[0]
@@ -125,14 +149,12 @@ if __name__ == "__main__":
         np.save("./out/control_bf_stds.npy", np.array(control_bf_stds))
         np.save("./out/treatment_bfs.npy", np.array(treatment_bfs))
         np.save("./out/ps_gene_names.npy", np.array(gene_names_so_far))
-        
 
         ax.set_title("Global Bayes factors, Perturb-seq")
         ax.set_xticks(ind + width / 2)
         ax.set_xticklabels(gene_names_so_far)
 
-        ax.legend((p1[0], p2[0]), ('Control', 'Treatment'), prop={'size': 20})
+        ax.legend((p1[0], p2[0]), ("Control", "Treatment"), prop={"size": 20})
         plt.ylabel("log(BF)")
         plt.tight_layout()
         plt.savefig("./out/perturbseq_global_BFs.png")
-

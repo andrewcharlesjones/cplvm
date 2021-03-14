@@ -21,6 +21,7 @@ from tensorflow_probability import bijectors as tfb
 from cai2013_test import cai_test
 
 import sys
+
 sys.path.append("../../models")
 
 from clvm_tfp_poisson import fit_model as fit_clvm
@@ -28,8 +29,9 @@ from clvm_tfp_poisson import clvm
 from pca_poisson import fit_model as fit_pca
 
 import matplotlib
-font = {'size'   : 18}
-matplotlib.rc('font', **font)
+
+font = {"size": 18}
+matplotlib.rc("font", **font)
 
 
 # from clvm_tfp_poisson_link import fit_model as fit_clvm
@@ -39,7 +41,7 @@ matplotlib.rc('font', **font)
 tf.enable_v2_behavior()
 
 plt.style.use("ggplot")
-warnings.filterwarnings('ignore')
+warnings.filterwarnings("ignore")
 
 
 if __name__ == "__main__":
@@ -65,27 +67,28 @@ if __name__ == "__main__":
 
             # ------- Specify model ---------
 
-            concrete_clvm_model = functools.partial(clvm,
-                                                    data_dim=data_dim,
-                                                    latent_dim_shared=latent_dim_shared,
-                                                    latent_dim_target=latent_dim_target,
-                                                    num_datapoints_x=num_datapoints_x,
-                                                    num_datapoints_y=num_datapoints_y,
-                                                    counts_per_cell_X=1,
-                                                    counts_per_cell_Y=1,
-                                                    is_H0=False)
+            concrete_clvm_model = functools.partial(
+                clvm,
+                data_dim=data_dim,
+                latent_dim_shared=latent_dim_shared,
+                latent_dim_target=latent_dim_target,
+                num_datapoints_x=num_datapoints_x,
+                num_datapoints_y=num_datapoints_y,
+                counts_per_cell_X=1,
+                counts_per_cell_Y=1,
+                is_H0=False,
+            )
 
             model = tfd.JointDistributionCoroutineAutoBatched(concrete_clvm_model)
 
             deltax, sf_x, sf_y, s, zx, zy, w, ty, X_sampled, Y_sampled = model.sample()
-            
+
             X, Y = X_sampled.numpy(), Y_sampled.numpy()
 
             # Run test
             test_stat, curr_reject = cai_test(X, Y, verbose=True)
             decisions_experiment.append(curr_reject)
             test_stats_experiment.append(test_stat)
-
 
             ### Shuffle background and foreground labels
 
@@ -103,48 +106,72 @@ if __name__ == "__main__":
 
             ## Simulate data from null model
 
-            concrete_clvm_model = functools.partial(clvm,
-                                                    data_dim=data_dim,
-                                                    latent_dim_shared=latent_dim_shared,
-                                                    latent_dim_target=latent_dim_target,
-                                                    num_datapoints_x=num_datapoints_x,
-                                                    num_datapoints_y=num_datapoints_y,
-                                                    counts_per_cell_X=1,
-                                                    counts_per_cell_Y=1,
-                                                    is_H0=True)
+            concrete_clvm_model = functools.partial(
+                clvm,
+                data_dim=data_dim,
+                latent_dim_shared=latent_dim_shared,
+                latent_dim_target=latent_dim_target,
+                num_datapoints_x=num_datapoints_x,
+                num_datapoints_y=num_datapoints_y,
+                counts_per_cell_X=1,
+                counts_per_cell_Y=1,
+                is_H0=True,
+            )
 
             model = tfd.JointDistributionCoroutineAutoBatched(concrete_clvm_model)
 
             deltax, sf_x, sf_y, s, zx, zy, X_sampled, Y_sampled = model.sample()
-            
+
             X, Y = X_sampled.numpy(), Y_sampled.numpy()
             # Run test
             test_stat, curr_reject = cai_test(X, Y, verbose=True)
             decisions_shuffled.append(curr_reject)
             test_stats_shuffled.append(test_stat)
 
-
-
-
         power = np.sum(decisions_experiment) / len(decisions_experiment)
         size = np.sum(decisions_shuffled) / len(decisions_experiment)
         print("Power: {}".format(power))
         print("Size: {}".format(size))
-                
 
         # bfs_control = np.array(bfs_control)[~np.isnan(bfs_control)]
-        test_stats_experiment = list(np.array(test_stats_experiment)[~np.isnan(test_stats_experiment)])
-        test_stats_shuffled = list(np.array(test_stats_shuffled)[~np.isnan(test_stats_shuffled)])
-        tpr_shuffled, fpr_shuffled, thresholds_shuffled = roc_curve(y_true=np.concatenate([np.zeros(len(test_stats_shuffled)), np.ones(len(test_stats_experiment))]), y_score=np.concatenate([test_stats_shuffled, test_stats_experiment]))
+        test_stats_experiment = list(
+            np.array(test_stats_experiment)[~np.isnan(test_stats_experiment)]
+        )
+        test_stats_shuffled = list(
+            np.array(test_stats_shuffled)[~np.isnan(test_stats_shuffled)]
+        )
+        tpr_shuffled, fpr_shuffled, thresholds_shuffled = roc_curve(
+            y_true=np.concatenate(
+                [
+                    np.zeros(len(test_stats_shuffled)),
+                    np.ones(len(test_stats_experiment)),
+                ]
+            ),
+            y_score=np.concatenate([test_stats_shuffled, test_stats_experiment]),
+        )
 
-        auc = roc_auc_score(y_true=np.concatenate([np.zeros(len(test_stats_shuffled)), np.ones(len(test_stats_experiment))]), y_score=np.concatenate([test_stats_shuffled, test_stats_experiment]))
+        auc = roc_auc_score(
+            y_true=np.concatenate(
+                [
+                    np.zeros(len(test_stats_shuffled)),
+                    np.ones(len(test_stats_experiment)),
+                ]
+            ),
+            y_score=np.concatenate([test_stats_shuffled, test_stats_experiment]),
+        )
 
-        np.save("./out/cai/test_stats_experiment_p{}.npy".format(data_dim), test_stats_experiment)
-        np.save("./out/cai/test_stats_shuffled_p{}.npy".format(data_dim), test_stats_shuffled)
+        np.save(
+            "./out/cai/test_stats_experiment_p{}.npy".format(data_dim),
+            test_stats_experiment,
+        )
+        np.save(
+            "./out/cai/test_stats_shuffled_p{}.npy".format(data_dim),
+            test_stats_shuffled,
+        )
 
         plt.figure(figsize=(7, 5))
         plt.plot(tpr_shuffled, fpr_shuffled, label="Experiment vs. shuffled")
-        plt.plot([0, 1], [0, 1], '--', color='black')
+        plt.plot([0, 1], [0, 1], "--", color="black")
         plt.title("AUC={}".format(round(auc, 2)))
         plt.legend()
         plt.xlabel("Power")
@@ -154,4 +181,3 @@ if __name__ == "__main__":
         # plt.close()
         # plt.show()
     # import ipdb; ipdb.set_trace()
-

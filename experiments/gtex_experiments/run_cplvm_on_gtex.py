@@ -17,10 +17,10 @@ from tensorflow_probability import bijectors as tfb
 from cplvm import CPLVM
 
 import matplotlib
-font = {'size': 30}
-matplotlib.rc('font', **font)
-matplotlib.rcParams['text.usetex'] = True
 
+font = {"size": 30}
+matplotlib.rc("font", **font)
+matplotlib.rcParams["text.usetex"] = True
 
 
 if __name__ == "__main__":
@@ -41,16 +41,26 @@ if __name__ == "__main__":
     model_dict = cplvm.fit_model_vi(X, Y, compute_size_factors=True, is_H0=False)
 
     # Mean of log-normal (take mean of posterior)
-    S_estimated = np.exp(model_dict['qs_mean'].numpy() + model_dict['qs_stddv'].numpy()**2 / 2)
+    S_estimated = np.exp(
+        model_dict["qs_mean"].numpy() + model_dict["qs_stddv"].numpy() ** 2 / 2
+    )
     S_estimated = pd.DataFrame(S_estimated, index=X.columns.values)
 
     # Mean of log-normal (take mean of posterior)
-    W_estimated = np.exp(model_dict['qw_mean'].numpy() + model_dict['qw_stddv'].numpy()**2 / 2)
+    W_estimated = np.exp(
+        model_dict["qw_mean"].numpy() + model_dict["qw_stddv"].numpy() ** 2 / 2
+    )
     W_estimated = pd.DataFrame(W_estimated, index=X.columns.values)
 
-    zx_estimated = np.exp(model_dict['qzx_mean'].numpy() + model_dict['qzx_stddv'].numpy()**2 / 2)
-    zy_estimated = np.exp(model_dict['qzy_mean'].numpy() + model_dict['qzy_stddv'].numpy()**2 / 2)
-    ty_estimated = np.exp(model_dict['qty_mean'].numpy() + model_dict['qty_stddv'].numpy()**2 / 2)
+    zx_estimated = np.exp(
+        model_dict["qzx_mean"].numpy() + model_dict["qzx_stddv"].numpy() ** 2 / 2
+    )
+    zy_estimated = np.exp(
+        model_dict["qzy_mean"].numpy() + model_dict["qzy_stddv"].numpy() ** 2 / 2
+    )
+    ty_estimated = np.exp(
+        model_dict["qty_mean"].numpy() + model_dict["qty_stddv"].numpy() ** 2 / 2
+    )
 
     zy_df = pd.DataFrame(zy_estimated.T)
     ty_df = pd.DataFrame(ty_estimated.T)
@@ -58,6 +68,3 @@ if __name__ == "__main__":
     ## Save S and W matrices
     S_estimated.to_csv("./out/gtex_heart_S.csv", header=None)
     W_estimated.to_csv("./out/gtex_heart_W.csv", header=None)
-
-
-

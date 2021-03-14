@@ -12,19 +12,18 @@ from sklearn.metrics import adjusted_rand_score, silhouette_score
 import pandas as pd
 
 import matplotlib
-font = {'size': 20}
-matplotlib.rc('font', **font)
-matplotlib.rcParams['text.usetex'] = True
+
+font = {"size": 20}
+matplotlib.rc("font", **font)
+matplotlib.rcParams["text.usetex"] = True
 
 
-METHODS = ['PCA', 'NMF', 'CPCA', 'PCPCA', 'CGLVM', 'CPLVM']
+METHODS = ["PCA", "NMF", "CPCA", "PCPCA", "CGLVM", "CPLVM"]
 
 ############ Generate data ############
 
 # Covariance of RVs
-cov_mat = np.array([
-    [2.7, 2.6],
-    [2.6, 2.7]])
+cov_mat = np.array([[2.7, 2.6], [2.6, 2.7]])
 
 n, m = 1000, 1000
 p = 2
@@ -32,12 +31,12 @@ p = 2
 
 ############ Generate data ############
 
-Z = multivariate_normal.rvs(mean=np.zeros(p), cov=cov_mat, size=m//2)
+Z = multivariate_normal.rvs(mean=np.zeros(p), cov=cov_mat, size=m // 2)
 Z_tilde = norm.cdf(Z)
 Y1 = poisson.ppf(q=Z_tilde, mu=10)
 Y1[:, 0] += 8
 
-Z = multivariate_normal.rvs(mean=np.zeros(p), cov=cov_mat, size=m//2)
+Z = multivariate_normal.rvs(mean=np.zeros(p), cov=cov_mat, size=m // 2)
 Z_tilde = norm.cdf(Z)
 Y2 = poisson.ppf(q=Z_tilde, mu=10)
 Y2[:, 1] += 8
@@ -60,8 +59,16 @@ Y_standardized = (Y - Y.mean(0)) / Y.std(0)
 plt.xlim([-3, 47])
 plt.ylim([-3, 47])
 plt.scatter(X[:, 0], X[:, 1], label="Background", color="gray", alpha=0.8)
-plt.scatter(Y[:m//2, 0], Y[:m//2, 1], label="Foreground group 1", color="green", alpha=0.8)
-plt.scatter(Y[m//2:, 0], Y[m//2:, 1], label="Foreground group 2", color="orange", alpha=0.8)
+plt.scatter(
+    Y[: m // 2, 0], Y[: m // 2, 1], label="Foreground group 1", color="green", alpha=0.8
+)
+plt.scatter(
+    Y[m // 2 :, 0],
+    Y[m // 2 :, 1],
+    label="Foreground group 2",
+    color="orange",
+    alpha=0.8,
+)
 plt.title("Toy data")
 plt.xlabel("Gene 1")
 plt.ylabel("Gene 2")
@@ -71,8 +78,7 @@ plt.show()
 
 # Labels of the foreground clusters
 true_labels = np.zeros(m)
-true_labels[m//2:] = 1
-
+true_labels[m // 2 :] = 1
 
 
 ############ CPLVM ############
@@ -80,10 +86,12 @@ true_labels[m//2:] = 1
 # Fit model
 cplvm = CPLVM(k_shared=1, k_foreground=2)
 
-model_dict = cplvm.fit_model_vi(X.T, Y.T, compute_size_factors=True, is_H0=False, offset_term=False)
+model_dict = cplvm.fit_model_vi(
+    X.T, Y.T, compute_size_factors=True, is_H0=False, offset_term=False
+)
 
-W = np.exp(model_dict['qw_mean'].numpy() + model_dict['qw_stddv'].numpy()**2)
-S = np.exp(model_dict['qs_mean'].numpy() + model_dict['qs_stddv'].numpy()**2)
+W = np.exp(model_dict["qw_mean"].numpy() + model_dict["qw_stddv"].numpy() ** 2)
+S = np.exp(model_dict["qs_mean"].numpy() + model_dict["qs_stddv"].numpy() ** 2)
 # delta = np.exp(model_dict['qdeltax_mean'].numpy() + model_dict['qdeltax_stddv'].numpy()**2)
 
 # Plot data
@@ -91,8 +99,8 @@ plt.figure(figsize=(7, 5))
 plt.xlim([-3, 50])
 plt.ylim([-3, 50])
 plt.scatter(X[:, 0], X[:, 1], color="gray", alpha=0.8)
-plt.scatter(Y[:m//2, 0], Y[:m//2, 1], color="green", alpha=0.8)
-plt.scatter(Y[m//2:, 0], Y[m//2:, 1], color="orange", alpha=0.8)
+plt.scatter(Y[: m // 2, 0], Y[: m // 2, 1], color="green", alpha=0.8)
+plt.scatter(Y[m // 2 :, 0], Y[m // 2 :, 1], color="orange", alpha=0.8)
 
 X_mean = np.mean(X, axis=0)
 S_slope = S[1, 0] / S[0, 0]
@@ -101,7 +109,7 @@ axes = plt.gca()
 xlims = np.array(axes.get_xlim())
 x_vals = np.linspace(xlims[0], xlims[1], 100)
 y_vals = S_slope * x_vals + S_intercept
-plt.plot(x_vals, y_vals, '--', label="S", color="black", linewidth=3)
+plt.plot(x_vals, y_vals, "--", label="S", color="black", linewidth=3)
 
 
 Y_mean = np.mean(Y, axis=0)
@@ -112,7 +120,7 @@ axes = plt.gca()
 ylims = np.array(axes.get_ylim())
 y_vals = np.linspace(ylims[0], ylims[1], 100)
 y_vals = W_slope * x_vals + W_intercept
-plt.plot(x_vals, y_vals, '--', label="W1", color="red", linewidth=3)
+plt.plot(x_vals, y_vals, "--", label="W1", color="red", linewidth=3)
 
 W_slope = W[1, 1] / W[0, 1]
 W_intercept = Y_mean[1] - Y_mean[0] * W_slope
@@ -120,18 +128,18 @@ axes = plt.gca()
 ylims = np.array(axes.get_ylim())
 y_vals = np.linspace(ylims[0], ylims[1], 100)
 y_vals = W_slope * x_vals + W_intercept
-plt.plot(x_vals, y_vals, '--', label="W2", color="blue", linewidth=3)
+plt.plot(x_vals, y_vals, "--", label="W2", color="blue", linewidth=3)
 
 plt.title("CPLVM")
 plt.xlabel("Gene 1")
 plt.ylabel("Gene 2")
-plt.legend(prop={'size': 20})
+plt.legend(prop={"size": 20})
 plt.tight_layout()
 plt.savefig("./out/cplvm_toy.png")
 plt.show()
-import ipdb; ipdb.set_trace()
+import ipdb
 
-
+ipdb.set_trace()
 
 
 ############ CGLVM ############
@@ -142,16 +150,24 @@ cglvm = CGLVM(k_shared=1, k_foreground=1)
 
 model_dict = cglvm.fit_model_vi(X.T, Y.T, compute_size_factors=True, is_H0=False)
 
-W = model_dict['qw_mean'].numpy()
-S = model_dict['qs_mean'].numpy()
+W = model_dict["qw_mean"].numpy()
+S = model_dict["qs_mean"].numpy()
 
 # Plot data
 plt.figure(figsize=(7, 5))
 plt.xlim([-3, 50])
 plt.ylim([-3, 50])
 plt.scatter(X[:, 0], X[:, 1], label="Background", color="gray", alpha=0.8)
-plt.scatter(Y[:m//2, 0], Y[:m//2, 1], label="Foreground group 1", color="green", alpha=0.8)
-plt.scatter(Y[m//2:, 0], Y[m//2:, 1], label="Foreground group 2", color="orange", alpha=0.8)
+plt.scatter(
+    Y[: m // 2, 0], Y[: m // 2, 1], label="Foreground group 1", color="green", alpha=0.8
+)
+plt.scatter(
+    Y[m // 2 :, 0],
+    Y[m // 2 :, 1],
+    label="Foreground group 2",
+    color="orange",
+    alpha=0.8,
+)
 
 X_mean = np.mean(X, axis=0)
 S_slope = S[1, 0] / S[0, 0]
@@ -160,7 +176,7 @@ axes = plt.gca()
 xlims = np.array(axes.get_xlim())
 x_vals = np.linspace(xlims[0], xlims[1], 100)
 y_vals = S_slope * x_vals + S_intercept
-plt.plot(x_vals, y_vals, '--', label="S", color="black", linewidth=3)
+plt.plot(x_vals, y_vals, "--", label="S", color="black", linewidth=3)
 
 
 Y_mean = np.mean(Y, axis=0)
@@ -171,20 +187,20 @@ axes = plt.gca()
 ylims = np.array(axes.get_ylim())
 y_vals = np.linspace(ylims[0], ylims[1], 100)
 y_vals = W_slope * x_vals + W_intercept
-plt.plot(x_vals, y_vals, '--', label="W1", color="red", linewidth=3)
+plt.plot(x_vals, y_vals, "--", label="W1", color="red", linewidth=3)
 
 plt.title("CGLVM")
 plt.xlabel("Gene 1")
 plt.ylabel("Gene 2")
-plt.legend(prop={'size': 20})
+plt.legend(prop={"size": 20})
 plt.tight_layout()
 plt.savefig("./out/cglvm_toy.png")
 plt.show()
 
 
+import ipdb
 
-
-import ipdb; ipdb.set_trace()
+ipdb.set_trace()
 
 #######################################
 
@@ -203,8 +219,16 @@ plt.subplot(2, (len(METHODS) + 1) / 2, 1)
 plt.xlim([-3, 50])
 plt.ylim([-3, 50])
 plt.scatter(X[:, 0], X[:, 1], label="Background", color="gray", alpha=0.8)
-plt.scatter(Y[:m//2, 0], Y[:m//2, 1], label="Foreground group 1", color="green", alpha=0.8)
-plt.scatter(Y[m//2:, 0], Y[m//2:, 1], label="Foreground group 2", color="orange", alpha=0.8)
+plt.scatter(
+    Y[: m // 2, 0], Y[: m // 2, 1], label="Foreground group 1", color="green", alpha=0.8
+)
+plt.scatter(
+    Y[m // 2 :, 0],
+    Y[m // 2 :, 1],
+    label="Foreground group 2",
+    color="orange",
+    alpha=0.8,
+)
 
 Y_mean = np.mean(Y, axis=0)
 W_slope = W_pca[1, 0] / W_pca[0, 0]
@@ -214,10 +238,10 @@ axes = plt.gca()
 xlims = np.array(axes.get_xlim())
 x_vals = np.linspace(xlims[0], xlims[1], 100)
 y_vals = W_slope * x_vals + W_intercept
-plt.plot(x_vals, y_vals, '--', label="W", color="red", linewidth=3)
+plt.plot(x_vals, y_vals, "--", label="W", color="red", linewidth=3)
 plt.xlabel("Gene 1")
 plt.ylabel("Gene 2")
-plt.legend(prop={'size': 20})
+plt.legend(prop={"size": 20})
 
 plt.title("PCA")
 
@@ -233,8 +257,16 @@ plt.subplot(2, (len(METHODS) + 1) / 2, 2)
 plt.xlim([-3, 50])
 plt.ylim([-3, 50])
 plt.scatter(X[:, 0], X[:, 1], label="Background", color="gray", alpha=0.8)
-plt.scatter(Y[:m//2, 0], Y[:m//2, 1], label="Foreground group 1", color="green", alpha=0.8)
-plt.scatter(Y[m//2:, 0], Y[m//2:, 1], label="Foreground group 2", color="orange", alpha=0.8)
+plt.scatter(
+    Y[: m // 2, 0], Y[: m // 2, 1], label="Foreground group 1", color="green", alpha=0.8
+)
+plt.scatter(
+    Y[m // 2 :, 0],
+    Y[m // 2 :, 1],
+    label="Foreground group 2",
+    color="orange",
+    alpha=0.8,
+)
 
 Y_mean = np.mean(Y, axis=0)
 
@@ -244,7 +276,7 @@ axes = plt.gca()
 ylims = np.array(axes.get_ylim())
 y_vals = np.linspace(ylims[0], ylims[1], 100)
 y_vals = W_slope * x_vals + W_intercept
-plt.plot(x_vals, y_vals, '--', label="W1", color="red", linewidth=3)
+plt.plot(x_vals, y_vals, "--", label="W1", color="red", linewidth=3)
 
 W_slope = W_nmf[1, 1] / (W_nmf[0, 1] + 1e-6)
 W_intercept = Y_mean[1] - Y_mean[0] * W_slope
@@ -252,12 +284,12 @@ axes = plt.gca()
 ylims = np.array(axes.get_ylim())
 y_vals = np.linspace(ylims[0], ylims[1], 100)
 y_vals = W_slope * x_vals + W_intercept
-plt.plot(x_vals, y_vals, '--', label="W2", color="blue", linewidth=3)
+plt.plot(x_vals, y_vals, "--", label="W2", color="blue", linewidth=3)
 # ipdb.set_trace()
 
 plt.xlabel("Gene 1")
 plt.ylabel("Gene 2")
-plt.legend(prop={'size': 20})
+plt.legend(prop={"size": 20})
 
 plt.title("NMF")
 
@@ -273,8 +305,16 @@ plt.subplot(2, (len(METHODS) + 1) / 2, 3)
 plt.xlim([-3, 50])
 plt.ylim([-3, 50])
 plt.scatter(X[:, 0], X[:, 1], label="Background", color="gray", alpha=0.8)
-plt.scatter(Y[:m//2, 0], Y[:m//2, 1], label="Foreground group 1", color="green", alpha=0.8)
-plt.scatter(Y[m//2:, 0], Y[m//2:, 1], label="Foreground group 2", color="orange", alpha=0.8)
+plt.scatter(
+    Y[: m // 2, 0], Y[: m // 2, 1], label="Foreground group 1", color="green", alpha=0.8
+)
+plt.scatter(
+    Y[m // 2 :, 0],
+    Y[m // 2 :, 1],
+    label="Foreground group 2",
+    color="orange",
+    alpha=0.8,
+)
 
 
 Y_mean = np.mean(Y, axis=0)
@@ -285,10 +325,10 @@ axes = plt.gca()
 xlims = np.array(axes.get_xlim())
 x_vals = np.linspace(xlims[0], xlims[1], 100)
 y_vals = W_slope * x_vals + W_intercept
-plt.plot(x_vals, y_vals, '--', label="W", color="red", linewidth=3)
+plt.plot(x_vals, y_vals, "--", label="W", color="red", linewidth=3)
 plt.xlabel("Gene 1")
 plt.ylabel("Gene 2")
-plt.legend(prop={'size': 20})
+plt.legend(prop={"size": 20})
 
 plt.title("CPCA")
 
@@ -303,8 +343,16 @@ plt.subplot(2, (len(METHODS) + 1) / 2, 4)
 plt.xlim([-3, 50])
 plt.ylim([-3, 50])
 plt.scatter(X[:, 0], X[:, 1], label="Background", color="gray", alpha=0.8)
-plt.scatter(Y[:m//2, 0], Y[:m//2, 1], label="Foreground group 1", color="green", alpha=0.8)
-plt.scatter(Y[m//2:, 0], Y[m//2:, 1], label="Foreground group 2", color="orange", alpha=0.8)
+plt.scatter(
+    Y[: m // 2, 0], Y[: m // 2, 1], label="Foreground group 1", color="green", alpha=0.8
+)
+plt.scatter(
+    Y[m // 2 :, 0],
+    Y[m // 2 :, 1],
+    label="Foreground group 2",
+    color="orange",
+    alpha=0.8,
+)
 
 
 Y_mean = np.mean(Y, axis=0)
@@ -315,10 +363,10 @@ axes = plt.gca()
 xlims = np.array(axes.get_xlim())
 x_vals = np.linspace(xlims[0], xlims[1], 100)
 y_vals = W_slope * x_vals + W_intercept
-plt.plot(x_vals, y_vals, '--', label="W", color="red", linewidth=3)
+plt.plot(x_vals, y_vals, "--", label="W", color="red", linewidth=3)
 plt.xlabel("Gene 1")
 plt.ylabel("Gene 2")
-plt.legend(prop={'size': 20})
+plt.legend(prop={"size": 20})
 
 plt.title("PCPCA")
 
@@ -330,14 +378,14 @@ cglvm = CGLVM(k_shared=1, k_foreground=1)
 
 model_dict = cglvm.git_model_vi(X.T, Y.T, compute_size_factors=True, is_H0=False)
 
-W = model_dict['qw_mean'].numpy()
-S = model_dict['qs_mean'].numpy()
+W = model_dict["qw_mean"].numpy()
+S = model_dict["qs_mean"].numpy()
 
-zy = model_dict['qzy_mean'].numpy()
-ty = model_dict['qty_mean'].numpy()
+zy = model_dict["qzy_mean"].numpy()
+ty = model_dict["qty_mean"].numpy()
 
-mu_y = model_dict['qmu_y_mean'].numpy()
-sf_y = model_dict['qsize_factor_y_mean'].numpy()
+mu_y = model_dict["qmu_y_mean"].numpy()
+sf_y = model_dict["qsize_factor_y_mean"].numpy()
 
 
 plt.subplot(2, (len(METHODS) + 1) / 2, 5)
@@ -346,8 +394,16 @@ plt.subplot(2, (len(METHODS) + 1) / 2, 5)
 plt.xlim([-3, 50])
 plt.ylim([-3, 50])
 plt.scatter(X[:, 0], X[:, 1], label="Background", color="gray", alpha=0.8)
-plt.scatter(Y[:m//2, 0], Y[:m//2, 1], label="Foreground group 1", color="green", alpha=0.8)
-plt.scatter(Y[m//2:, 0], Y[m//2:, 1], label="Foreground group 2", color="orange", alpha=0.8)
+plt.scatter(
+    Y[: m // 2, 0], Y[: m // 2, 1], label="Foreground group 1", color="green", alpha=0.8
+)
+plt.scatter(
+    Y[m // 2 :, 0],
+    Y[m // 2 :, 1],
+    label="Foreground group 2",
+    color="orange",
+    alpha=0.8,
+)
 
 # Plot S
 X_mean = np.mean(X, axis=0)
@@ -357,7 +413,7 @@ axes = plt.gca()
 xlims = np.array(axes.get_xlim())
 x_vals = np.linspace(xlims[0], xlims[1], 100)
 y_vals = S_slope * x_vals + S_intercept
-plt.plot(x_vals, y_vals, '--', label="S", color="black", linewidth=3)
+plt.plot(x_vals, y_vals, "--", label="S", color="black", linewidth=3)
 
 
 Y_mean = np.mean(Y, axis=0)
@@ -368,14 +424,13 @@ axes = plt.gca()
 ylims = np.array(axes.get_ylim())
 y_vals = np.linspace(ylims[0], ylims[1], 100)
 y_vals = W_slope * x_vals + W_intercept
-plt.plot(x_vals, y_vals, '--', label="W", color="red", linewidth=3)
+plt.plot(x_vals, y_vals, "--", label="W", color="red", linewidth=3)
 
 
 plt.title("CGLVM")
 plt.xlabel("Gene 1")
 plt.ylabel("Gene 2")
-plt.legend(prop={'size': 20})
-
+plt.legend(prop={"size": 20})
 
 
 ############ CPLVM ############
@@ -385,16 +440,20 @@ cplvm = CGPLVM(k_shared=1, k_foreground=1)
 
 model_dict = cplvm.git_model_vi(X.T, Y.T, compute_size_factors=True, is_H0=False)
 model_dict = fit_clvm_nonnegative(
-    X.T, Y.T, 1, 2, compute_size_factors=True, is_H0=False, offset_term=False)
+    X.T, Y.T, 1, 2, compute_size_factors=True, is_H0=False, offset_term=False
+)
 
-W = np.exp(model_dict['qw_mean'].numpy() + model_dict['qw_stddv'].numpy()**2)
-S = np.exp(model_dict['qs_mean'].numpy() + model_dict['qs_stddv'].numpy()**2)
+W = np.exp(model_dict["qw_mean"].numpy() + model_dict["qw_stddv"].numpy() ** 2)
+S = np.exp(model_dict["qs_mean"].numpy() + model_dict["qs_stddv"].numpy() ** 2)
 
-zx = np.exp(model_dict['qzx_mean'].numpy() + model_dict['qzx_stddv'].numpy()**2)
-zy = np.exp(model_dict['qzy_mean'].numpy() + model_dict['qzy_stddv'].numpy()**2)
-ty = np.exp(model_dict['qty_mean'].numpy() + model_dict['qty_stddv'].numpy()**2)
+zx = np.exp(model_dict["qzx_mean"].numpy() + model_dict["qzx_stddv"].numpy() ** 2)
+zy = np.exp(model_dict["qzy_mean"].numpy() + model_dict["qzy_stddv"].numpy() ** 2)
+ty = np.exp(model_dict["qty_mean"].numpy() + model_dict["qty_stddv"].numpy() ** 2)
 
-sf_y = np.exp(model_dict['qsize_factors_y_mean'].numpy() + model_dict['qsize_factor_y_stddv'].numpy()**2)
+sf_y = np.exp(
+    model_dict["qsize_factors_y_mean"].numpy()
+    + model_dict["qsize_factor_y_stddv"].numpy() ** 2
+)
 
 plt.subplot(2, (len(METHODS) + 1) / 2, 6)
 
@@ -402,8 +461,16 @@ plt.subplot(2, (len(METHODS) + 1) / 2, 6)
 plt.xlim([-3, 50])
 plt.ylim([-3, 50])
 plt.scatter(X[:, 0], X[:, 1], label="Background", color="gray", alpha=0.8)
-plt.scatter(Y[:m//2, 0], Y[:m//2, 1], label="Foreground group 1", color="green", alpha=0.8)
-plt.scatter(Y[m//2:, 0], Y[m//2:, 1], label="Foreground group 2", color="orange", alpha=0.8)
+plt.scatter(
+    Y[: m // 2, 0], Y[: m // 2, 1], label="Foreground group 1", color="green", alpha=0.8
+)
+plt.scatter(
+    Y[m // 2 :, 0],
+    Y[m // 2 :, 1],
+    label="Foreground group 2",
+    color="orange",
+    alpha=0.8,
+)
 
 X_mean = np.mean(X, axis=0)
 S_slope = S[1, 0] / S[0, 0]
@@ -412,7 +479,7 @@ axes = plt.gca()
 xlims = np.array(axes.get_xlim())
 x_vals = np.linspace(xlims[0], xlims[1], 100)
 y_vals = S_slope * x_vals + S_intercept
-plt.plot(x_vals, y_vals, '--', label="S", color="black", linewidth=3)
+plt.plot(x_vals, y_vals, "--", label="S", color="black", linewidth=3)
 
 
 Y_mean = np.mean(Y, axis=0)
@@ -423,7 +490,7 @@ axes = plt.gca()
 ylims = np.array(axes.get_ylim())
 y_vals = np.linspace(ylims[0], ylims[1], 100)
 y_vals = W_slope * x_vals + W_intercept
-plt.plot(x_vals, y_vals, '--', label="W1", color="red", linewidth=3)
+plt.plot(x_vals, y_vals, "--", label="W1", color="red", linewidth=3)
 
 W_slope = W[1, 1] / W[0, 1]
 W_intercept = Y_mean[1] - Y_mean[0] * W_slope
@@ -431,14 +498,13 @@ axes = plt.gca()
 ylims = np.array(axes.get_ylim())
 y_vals = np.linspace(ylims[0], ylims[1], 100)
 y_vals = W_slope * x_vals + W_intercept
-plt.plot(x_vals, y_vals, '--', label="W2", color="blue", linewidth=3)
+plt.plot(x_vals, y_vals, "--", label="W2", color="blue", linewidth=3)
 
 plt.title("CPLVM")
 plt.xlabel("Gene 1")
 plt.ylabel("Gene 2")
-plt.legend(prop={'size': 20})
+plt.legend(prop={"size": 20})
 
 
 plt.tight_layout()
 plt.show()
-
