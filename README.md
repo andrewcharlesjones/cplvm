@@ -43,7 +43,7 @@ plt.show()
 ```
 
 <p align="center">
-	<img src="./experiments/simulation_experiments/toy_example/out/toy_data.png" />
+	<img src="./experiments/simulation_experiments/toy_example/out/toy_data.png" width="500">
 </p>
 
 Now, we fit the CPLVM.
