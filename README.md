@@ -7,12 +7,9 @@ The accompanying paper can be found here: https://arxiv.org/abs/2102.06731.
 
 ## Installation
 
-See requirements.txt for a list installed packages and their versions. To install the package, run the following commands in a terminal from the directory in which you want to install it.
+See requirements.txt for a list installed packages and their versions. The package can be installed with pip.
 ```bash
-git clone git@github.com:andrewcharlesjones/cplvm.git
-cd cplvm
-pip install -r requirements.txt
-python setup.py install
+pip install cplvm
 ```
 
 You should then be able to import the model in Python as follows:
