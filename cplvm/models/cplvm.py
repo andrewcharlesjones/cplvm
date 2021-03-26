@@ -215,58 +215,10 @@ class CPLVM(ContrastiveModel):
             num_steps=NUM_VI_ITERS,
         )
 
-        if is_H0:
-            return_dict = {
-                "loss_trace": losses,
-                "qs_mean": qs_mean,
-                "qzx_mean": qzx_mean,
-                "qzy_mean": qzy_mean,
-                "qs_stddv": qs_stddv,
-                "qzx_stddv": qzx_stddv,
-                "qzy_stddv": qzy_stddv,
-                "qdeltax_mean": qdeltax_mean,
-                "qdeltax_stddv": qdeltax_stddv,
-            }
-        else:
-
-            if offset_term:
-                return_dict = {
-                    "loss_trace": losses,
-                    "qs_mean": qs_mean,
-                    "qw_mean": qw_mean,
-                    "qzx_mean": qzx_mean,
-                    "qzy_mean": qzy_mean,
-                    "qty_mean": qty_mean,
-                    "qs_stddv": qs_stddv,
-                    "qw_stddv": qw_stddv,
-                    "qzx_stddv": qzx_stddv,
-                    "qzy_stddv": qzy_stddv,
-                    "qty_stddv": qty_stddv,
-                    "qdeltax_mean": qdeltax_mean,
-                    "qdeltax_stddv": qdeltax_stddv,
-                    "qsize_factors_x_mean": qsize_factor_x_mean,
-                    "qsize_factor_x_stddv": qsize_factor_x_stddv,
-                    "qsize_factors_y_mean": qsize_factor_y_mean,
-                    "qsize_factor_y_stddv": qsize_factor_y_stddv,
-                }
-            else:
-                return_dict = {
-                    "loss_trace": losses,
-                    "qs_mean": qs_mean,
-                    "qw_mean": qw_mean,
-                    "qzx_mean": qzx_mean,
-                    "qzy_mean": qzy_mean,
-                    "qty_mean": qty_mean,
-                    "qs_stddv": qs_stddv,
-                    "qw_stddv": qw_stddv,
-                    "qzx_stddv": qzx_stddv,
-                    "qzy_stddv": qzy_stddv,
-                    "qty_stddv": qty_stddv,
-                    "qsize_factors_x_mean": qsize_factor_x_mean,
-                    "qsize_factor_x_stddv": qsize_factor_x_stddv,
-                    "qsize_factors_y_mean": qsize_factor_y_mean,
-                    "qsize_factor_y_stddv": qsize_factor_y_stddv,
-                }
+        return_dict = {
+            "loss_trace": losses,
+            "approximate_model": approximate_model
+        }
 
         return return_dict
 
