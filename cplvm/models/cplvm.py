@@ -13,7 +13,7 @@ from tensorflow_probability import bijectors as tfb
 
 
 from scipy.stats import multivariate_normal
-from cplvm.models.model import ContrastiveModel
+from model import ContrastiveModel
 
 tf.enable_v2_behavior()
 
@@ -341,3 +341,4 @@ class CPLVM(ContrastiveModel):
             }
 
         return return_dict
+
