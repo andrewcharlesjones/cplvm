@@ -13,7 +13,7 @@ from tensorflow_probability import bijectors as tfb
 
 
 from scipy.stats import multivariate_normal
-from model import ContrastiveModel
+from cplvm.models.model import ContrastiveModel
 
 tf.enable_v2_behavior()
 
@@ -63,7 +63,7 @@ class CPLVM(ContrastiveModel):
         s = yield tfd.Gamma(
             concentration=tf.ones([data_dim, self._k_shared]),
             rate=tf.ones([data_dim, self._k_shared]),
-            name="w",
+            name="s",
         )
 
         zx = yield tfd.Gamma(
@@ -297,9 +297,6 @@ class CPLVM(ContrastiveModel):
                         (size_factor_x, size_factor_y, s, zx, zy, w, ty, X, Y)
                     )
 
-        qzy_stddv = tfp.util.TransformedVariable(
-            1e-4 * tf.ones([self._k_shared, num_datapoints_y]), bijector=tfb.Softplus()
-        )
 
         mu_x = tf.Variable(tf.random.normal([data_dim, 1]))
         mu_y = tf.Variable(tf.random.normal([data_dim, 1]))
@@ -320,24 +317,27 @@ class CPLVM(ContrastiveModel):
 
         if is_H0:
             return_dict = {
-                "loss_trace": losses,
-                "qs_mean": qs_mean,
-                "qzx_mean": qzx_mean,
-                "qzy_mean": qzy_mean,
-                "qs_stddv": qs_stddv,
-                "qzx_stddv": qzx_stddv,
-                "qzy_stddv": qzy_stddv,
+                "loss_trace": approximate_model.losses,
+                "qs_mean": approximate_model.qs_mean,
+                "qzx_mean": approximate_model.qzx_mean,
+                "qzy_mean": approximate_model.qzy_mean,
+                "qs_stddv": approximate_model.qs_stddv,
+                "qzx_stddv": approximate_model.qzx_stddv,
+                "qzy_stddv": approximate_model.qzy_stddv
             }
         else:
             return_dict = {
-                "loss_trace": losses,
-                "mu_x": mu_x,
-                "mu_y": mu_y,
-                "s": s,
-                "zx": zx,
-                "zy": zy,
-                "w": w,
-                "ty": ty,
+                "loss_trace": approximate_model.losses,
+                "qs_mean": approximate_model.qs_mean,
+                "q2_mean": approximate_model.q2_mean,
+                "qzx_mean": approximate_model.qzx_mean,
+                "qzy_mean": approximate_model.qzy_mean,
+                "qty_mean": approximate_model.qty_mean,
+                "qs_stddv": approximate_model.qs_stddv,
+                "qzx_stddv": approximate_model.qzx_stddv,
+                "qzy_stddv": approximate_model.qzy_stddv,
+                "qty_stddv": approximate_model.qty_stddv,
+                "qw_stddv": approximate_model.qw_stddv
             }
 
         return return_dict

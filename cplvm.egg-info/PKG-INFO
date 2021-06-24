@@ -1,4 +1,4 @@
-Metadata-Version: 1.0
+Metadata-Version: 1.1
 Name: cplvm
 Version: 0.1
 Summary: Contrastive Poisson latent variable model
@@ -6,5 +6,6 @@ Home-page: https://github.com/andrewcharlesjones/cplvm
 Author: Andy Jones
 Author-email: ajones788@gmail.com
 License: UNKNOWN
+Download-URL: https://github.com/andrewcharlesjones/cplvm/archive/refs/tags/v_01.tar.gz
 Description: UNKNOWN
 Platform: UNKNOWN

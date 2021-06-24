@@ -39,16 +39,7 @@ def test_loss_drop():
     latent_dim_shared = 3
     latent_dim_foreground = 3
 
-    actual_a, actual_b = 3, 3
-
     NUM_REPEATS = 1
-    bfs_experiment = []
-    bfs_control = []
-    bfs_shuffled = []
-
-    bfs_experiment_cglvm = []
-    bfs_control_cglvm = []
-    bfs_shuffled_cglvm = []
     for ii in range(NUM_REPEATS):
 
         # ------- generate data ---------
@@ -69,13 +60,11 @@ def test_loss_drop():
 
         model = tfd.JointDistributionCoroutineAutoBatched(concrete_cplvm_model)
 
-        deltax, sf_x, sf_y, s, zx, zy, w, ty, X_sampled, Y_sampled = model.sample()
+        # import ipdb; ipdb.set_trace()
+        _, _, _, _, _, _, _, _, X_sampled, Y_sampled = model.sample()
 
         X, Y = X_sampled.numpy(), Y_sampled.numpy()
 
-        ########## "Treatment" data ##########
-
-        # Run H0 and H1 models on data
         cplvm = CPLVM(k_shared=latent_dim_shared, k_foreground=latent_dim_foreground)
 
         approx_model = CPLVMLogNormalApprox(
@@ -86,3 +75,5 @@ def test_loss_drop():
         )
         assert results['loss_trace'][0] > results['loss_trace'][-1]
 
+if __name__ == "__main__":
+    test_loss_drop()

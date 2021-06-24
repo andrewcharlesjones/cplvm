@@ -17,7 +17,7 @@ from scipy.stats import multivariate_normal
 
 tf.enable_v2_behavior()
 
-warnings.filterwarnings('ignore')
+warnings.filterwarnings("ignore")
 
 NUM_VI_ITERS = 300
 LEARNING_RATE_VI = 0.05
@@ -25,22 +25,23 @@ LEARNING_RATE_VI = 0.05
 
 # ------- Specify model ---------
 
+
 def clvm(data_dim, num_datapoints, counts_per_cell, dummy, is_H0=False):
 
-    mu = yield tfd.Normal(loc=tf.zeros([data_dim, 1]),
-                 scale=tf.ones([data_dim, 1]),
-                 name="mu")
+    mu = yield tfd.Normal(
+        loc=tf.zeros([data_dim, 1]), scale=tf.ones([data_dim, 1]), name="mu"
+    )
 
-    beta = yield tfd.Normal(loc=tf.zeros([data_dim, 1]),
-                                        scale=tf.ones([data_dim, 1]),
-                                        name="beta")
+    beta = yield tfd.Normal(
+        loc=tf.zeros([data_dim, 1]), scale=tf.ones([data_dim, 1]), name="beta"
+    )
 
     # sigma = yield tfd.InverseGamma(concentration=tf.ones([data_dim, 1]),
     #                                 scale=1,
     #                                 name="sigma")
-    data = yield tfd.Normal(loc=(tf.matmul(beta, dummy) + mu) + np.log(counts_per_cell),
-                            scale=1,
-                            name="x")
+    data = yield tfd.Normal(
+        loc=(tf.matmul(beta, dummy) + mu) + np.log(counts_per_cell), scale=1, name="x"
+    )
 
 
 def fit_model(X, Y, compute_size_factors=True, is_H0=False):
@@ -67,29 +68,29 @@ def fit_model(X, Y, compute_size_factors=True, is_H0=False):
     else:
         counts_per_cell = 1.0
 
-
-
     # ------- Specify model ---------
 
-
-    concrete_clvm_model = functools.partial(clvm,
-                                            data_dim=data_dim,
-                                            num_datapoints=n,
-                                            counts_per_cell=counts_per_cell,
-                                            dummy=dummy,
-                                            is_H0=is_H0)
+    concrete_clvm_model = functools.partial(
+        clvm,
+        data_dim=data_dim,
+        num_datapoints=n,
+        counts_per_cell=counts_per_cell,
+        dummy=dummy,
+        is_H0=is_H0,
+    )
 
     model = tfd.JointDistributionCoroutineAutoBatched(concrete_clvm_model)
 
     if is_H0:
 
-        def target_log_prob_fn(mu, beta): return model.log_prob(
-            (mu, beta, data))
+        def target_log_prob_fn(mu, beta):
+            return model.log_prob((mu, beta, data))
 
     else:
 
-        def target_log_prob_fn(mu, beta): return model.log_prob(
-            (mu, beta, data))
+        def target_log_prob_fn(mu, beta):
+            return model.log_prob((mu, beta, data))
+
     # ------- Specify variational families -----------
 
     # Variational parmater means
@@ -97,14 +98,14 @@ def fit_model(X, Y, compute_size_factors=True, is_H0=False):
     # mu
     qmu_mean = tf.Variable(tf.random.normal([data_dim, 1]))
     qmu_stddv = tfp.util.TransformedVariable(
-        1e-4 * tf.ones([data_dim, 1]),
-        bijector=tfb.Softplus())
+        1e-4 * tf.ones([data_dim, 1]), bijector=tfb.Softplus()
+    )
 
     # beta
     qbeta_mean = tf.Variable(tf.random.normal([data_dim, 1]))
     qbeta_stddv = tfp.util.TransformedVariable(
-        1e-4 * tf.ones([data_dim, 1]),
-        bijector=tfb.Softplus())
+        1e-4 * tf.ones([data_dim, 1]), bijector=tfb.Softplus()
+    )
 
     # sigma
     # qsigma_concentration = tfp.util.TransformedVariable(
@@ -113,13 +114,9 @@ def fit_model(X, Y, compute_size_factors=True, is_H0=False):
 
     def factored_normal_variational_model():
 
-        qmu = yield tfd.Normal(loc=qmu_mean,
-                 scale=qmu_stddv,
-                 name="qmu")
+        qmu = yield tfd.Normal(loc=qmu_mean, scale=qmu_stddv, name="qmu")
 
-        qbeta = yield tfd.Normal(loc=qbeta_mean,
-                     scale=qbeta_stddv,
-                     name="qbeta")
+        qbeta = yield tfd.Normal(loc=qbeta_mean, scale=qbeta_stddv, name="qbeta")
 
         # qsigma = yield tfd.InverseGamma(concentration=qsigma_concentration,
         #                 scale=1,
@@ -127,15 +124,17 @@ def fit_model(X, Y, compute_size_factors=True, is_H0=False):
 
     # Surrogate posterior that we will try to make close to p
     surrogate_posterior = tfd.JointDistributionCoroutineAutoBatched(
-        factored_normal_variational_model)
+        factored_normal_variational_model
+    )
 
     # --------- Fit variational inference model using MC samples and gradient descent ----------
-    
+
     losses = tfp.vi.fit_surrogate_posterior(
         target_log_prob_fn,
         surrogate_posterior=surrogate_posterior,
         optimizer=tf.optimizers.Adam(learning_rate=LEARNING_RATE_VI),
-        num_steps=NUM_VI_ITERS)
+        num_steps=NUM_VI_ITERS,
+    )
 
     # d = np.log(data + 1)
     # d = data / data.sum(0)
@@ -143,14 +142,13 @@ def fit_model(X, Y, compute_size_factors=True, is_H0=False):
     # plt.scatter(np.squeeze(LinearRegression().fit(dummy.T, d.T).coef_), np.squeeze(qbeta_mean.numpy()))
     # plt.show()
 
-    
     # d = (d.T - d.mean(1)).T
     # x = np.mean(d[:, num_datapoints_x:], axis=1)
     # y = np.mean(d[:, :num_datapoints_x], axis=1)
     # from sklearn.linear_model import LinearRegression
     # import ipdb
     # ipdb.set_trace()
-    
+
     # plt.scatter(x - y, np.squeeze(qbeta_mean.numpy()))
     # plt.show()
     # import ipdb
@@ -158,7 +156,7 @@ def fit_model(X, Y, compute_size_factors=True, is_H0=False):
 
     if is_H0:
         return_dict = {
-            'loss_trace': losses,
+            "loss_trace": losses,
             # 'qs_mean': qs_mean,
             # 'qzx_mean': qzx_mean,
             # 'qzy_mean': qzy_mean,
@@ -170,7 +168,7 @@ def fit_model(X, Y, compute_size_factors=True, is_H0=False):
         }
     else:
         return_dict = {
-            'loss_trace': losses,
+            "loss_trace": losses,
             # 'qs_mean': qs_mean,
             # 'qw_mean': qw_mean,
             # 'qzx_mean': qzx_mean,
