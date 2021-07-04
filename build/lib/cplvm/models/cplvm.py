@@ -182,7 +182,7 @@ class CPLVM(ContrastiveModel):
                     )
 
             else:
-
+                # import ipdb; ipdb.set_trace()
                 def target_log_prob_fn(size_factor_x, size_factor_y, s, zx, zy):
                     return model.log_prob(
                         (size_factor_x, size_factor_y, s, zx, zy, X, Y)
