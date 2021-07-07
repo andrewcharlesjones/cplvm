@@ -19,7 +19,7 @@ tf.enable_v2_behavior()
 
 warnings.filterwarnings("ignore")
 
-NUM_VI_ITERS = 300
+NUM_VI_ITERS = 2000
 LEARNING_RATE_VI = 0.05
 GAMMA_MULTIPLIER = 3
 

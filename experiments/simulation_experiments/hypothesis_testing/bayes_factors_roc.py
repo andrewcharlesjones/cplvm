@@ -9,6 +9,7 @@ from sklearn.metrics import roc_curve
 from sklearn.metrics import roc_auc_score
 
 from cplvm import CPLVM
+from cplvm import CPLVMLogNormalApprox
 
 import functools
 import warnings
@@ -30,21 +31,21 @@ if __name__ == "__main__":
 
     p_list = [10, 100, 1000]
 
-    for data_dim in p_list:
+    NUM_REPEATS = 50
+
+    for ii in range(NUM_REPEATS):
 
         num_datapoints_x = 100
         num_datapoints_y = 100
-        # data_dim = 200
         latent_dim_shared = 3
-        latent_dim_target = 3
+        latent_dim_foreground = 3
 
-        actual_a, actual_b = 3, 3
-
-        NUM_REPEATS = 50
+        
         bfs_experiment = []
         # bfs_control = []
         bfs_shuffled = []
-        for ii in range(NUM_REPEATS):
+        
+        for data_dim in p_list:
 
             cplvm_for_data = CPLVM(
                 k_shared=latent_dim_shared, k_foreground=latent_dim_foreground
@@ -70,11 +71,18 @@ if __name__ == "__main__":
             cplvm = CPLVM(
                 k_shared=latent_dim_shared, k_foreground=latent_dim_foreground
             )
-
-            H1_results = cplvm.fit_model_vi(
-                X, Y, compute_size_factors=True, is_H0=False
+            approx_model = CPLVMLogNormalApprox(
+                X, Y, latent_dim_shared, latent_dim_foreground, # offset_term=False
             )
-            H0_results = cplvm.fit_model_vi(X, Y, compute_size_factors=True, is_H0=True)
+
+            H1_results = cplvm._fit_model_vi(
+                X, Y, approx_model, compute_size_factors=True, is_H0=False, # offset_term=False
+            )
+
+            approx_model = CPLVMLogNormalApprox(
+                X, Y, latent_dim_shared, latent_dim_foreground, is_H0=True, # offset_term=False
+            )
+            H0_results = cplvm._fit_model_vi(X, Y, approx_model, compute_size_factors=True, is_H0=True) # offset_term=False)
 
             H1_elbo = (
                 -1
@@ -108,10 +116,17 @@ if __name__ == "__main__":
                 k_shared=latent_dim_shared, k_foreground=latent_dim_foreground
             )
 
-            H1_results = cplvm.fit_model_vi(
-                X, Y, compute_size_factors=True, is_H0=False
+            approx_model = CPLVMLogNormalApprox(
+                X, Y, latent_dim_shared, latent_dim_foreground, #, offset_term=False
             )
-            H0_results = cplvm.fit_model_vi(X, Y, compute_size_factors=True, is_H0=True)
+            H1_results = cplvm._fit_model_vi(
+                X, Y, approx_model, compute_size_factors=True, is_H0=False, # offset_term=False
+            )
+
+            approx_model = CPLVMLogNormalApprox(
+                X, Y, latent_dim_shared, latent_dim_foreground, is_H0=True, #, offset_term=False
+            )
+            H0_results = cplvm._fit_model_vi(X, Y, approx_model, compute_size_factors=True, is_H0=True) #, offset_term=False)
 
             H1_elbo = (
                 -1
@@ -132,6 +147,9 @@ if __name__ == "__main__":
             bfs_experiment = list(np.array(bfs_experiment)[~np.isnan(bfs_experiment)])
             bfs_shuffled = list(np.array(bfs_shuffled)[~np.isnan(bfs_shuffled)])
             # tpr_true, fpr_true, thresholds_true = roc_curve(y_true=np.concatenate([np.zeros(len(bfs_control)), np.ones(len(bfs_experiment))]), y_score=np.concatenate([bfs_control, bfs_experiment]))
+
+            print(np.concatenate([np.zeros(len(bfs_shuffled)), np.ones(len(bfs_experiment))]))
+            print(np.concatenate([bfs_shuffled, bfs_experiment]))
             tpr_shuffled, fpr_shuffled, thresholds_shuffled = roc_curve(
                 y_true=np.concatenate(
                     [np.zeros(len(bfs_shuffled)), np.ones(len(bfs_experiment))]
@@ -139,8 +157,8 @@ if __name__ == "__main__":
                 y_score=np.concatenate([bfs_shuffled, bfs_experiment]),
             )
 
-            np.save("./out/cai/bfs_experiment_p{}.npy".format(data_dim), bfs_experiment)
-            np.save("./out/cai/bfs_shuffled_p{}.npy".format(data_dim), bfs_shuffled)
+            np.save("../out/cai/bfs_experiment_p{}.npy".format(data_dim), bfs_experiment)
+            np.save("../out/cai/bfs_shuffled_p{}.npy".format(data_dim), bfs_shuffled)
 
             auc = roc_auc_score(
                 y_true=np.concatenate(
@@ -158,5 +176,5 @@ if __name__ == "__main__":
             plt.xlabel("Power")
             plt.ylabel("Size")
             plt.tight_layout()
-            plt.savefig("./out/bf_roc_curve_p{}.png".format(data_dim))
+            plt.savefig("../out/bf_roc_curve_p{}.png".format(data_dim))
             plt.close()

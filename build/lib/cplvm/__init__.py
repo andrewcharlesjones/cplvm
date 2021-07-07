@@ -1,5 +1,6 @@
 from cplvm.models.cplvm import *
 from cplvm.models.cglvm import *
+from cplvm.models.clvm_gaussian import *
 from cplvm.models.model import *
 from cplvm.approximations.approx_model import *
 from cplvm.approximations.cplvm_lognormal_approx import *

@@ -24,9 +24,10 @@ LEARNING_RATE_VI = 0.05
 
 
 class CPLVM(ContrastiveModel):
-    def __init__(self, k_shared, k_foreground):
+    def __init__(self, k_shared, k_foreground, compute_size_factors=True):
 
         super().__init__(k_shared, k_foreground)
+        self.compute_size_factors = compute_size_factors
 
     def model(
         self,
@@ -48,17 +49,21 @@ class CPLVM(ContrastiveModel):
         else:
             deltax = tf.ones([data_dim, 1])
 
-        size_factor_x = yield tfd.LogNormal(
-            loc=np.mean(np.log(counts_per_cell_X)) * tf.ones([1, num_datapoints_x]),
-            scale=np.std(np.log(counts_per_cell_X)) * tf.ones([1, num_datapoints_x]),
-            name="size_factor_x",
-        )
+        if self.compute_size_factors:
+            size_factor_x = yield tfd.LogNormal(
+                loc=np.mean(np.log(counts_per_cell_X)) * tf.ones([1, num_datapoints_x]),
+                scale=np.std(np.log(counts_per_cell_X)) * tf.ones([1, num_datapoints_x]),
+                name="size_factor_x",
+            )
 
-        size_factor_y = yield tfd.LogNormal(
-            loc=np.mean(np.log(counts_per_cell_Y)) * tf.ones([1, num_datapoints_y]),
-            scale=np.std(np.log(counts_per_cell_Y)) * tf.ones([1, num_datapoints_y]),
-            name="size_factor_y",
-        )
+            size_factor_y = yield tfd.LogNormal(
+                loc=np.mean(np.log(counts_per_cell_Y)) * tf.ones([1, num_datapoints_y]),
+                scale=np.std(np.log(counts_per_cell_Y)) * tf.ones([1, num_datapoints_y]),
+                name="size_factor_y",
+            )
+        else:
+            size_factor_x = counts_per_cell_X
+            size_factor_y = counts_per_cell_Y
 
         s = yield tfd.Gamma(
             concentration=tf.ones([data_dim, self._k_shared]),
@@ -137,7 +142,6 @@ class CPLVM(ContrastiveModel):
         X,
         Y,
         approximate_model,
-        compute_size_factors=True,
         is_H0=False,
         num_test_genes=0,
         offset_term=True,
@@ -147,11 +151,13 @@ class CPLVM(ContrastiveModel):
         data_dim = X.shape[0]
         num_datapoints_x, num_datapoints_y = X.shape[1], Y.shape[1]
 
-        if compute_size_factors:
-            counts_per_cell_X = np.mean(X, axis=0)
-            counts_per_cell_X = np.expand_dims(counts_per_cell_X, 0)
-            counts_per_cell_Y = np.mean(Y, axis=0)
-            counts_per_cell_Y = np.expand_dims(counts_per_cell_Y, 0)
+        if self.compute_size_factors:
+            # counts_per_cell_X = np.mean(X, axis=0)
+            # counts_per_cell_X = np.expand_dims(counts_per_cell_X, 0)
+            # counts_per_cell_Y = np.mean(Y, axis=0)
+            # counts_per_cell_Y = np.expand_dims(counts_per_cell_Y, 0)
+            counts_per_cell_X = 1.0
+            counts_per_cell_Y = 1.0
         else:
             counts_per_cell_X = 1.0
             counts_per_cell_Y = 1.0
@@ -182,7 +188,7 @@ class CPLVM(ContrastiveModel):
                     )
 
             else:
-                # import ipdb; ipdb.set_trace()
+
                 def target_log_prob_fn(size_factor_x, size_factor_y, s, zx, zy):
                     return model.log_prob(
                         (size_factor_x, size_factor_y, s, zx, zy, X, Y)
@@ -192,19 +198,38 @@ class CPLVM(ContrastiveModel):
 
             if offset_term:
 
-                def target_log_prob_fn(
-                    deltax, size_factor_x, size_factor_y, s, zx, zy, w, ty
-                ):
-                    return model.log_prob(
-                        (deltax, size_factor_x, size_factor_y, s, zx, zy, w, ty, X, Y)
-                    )
+                if self.compute_size_factors:
+
+                    def target_log_prob_fn(
+                        deltax, size_factor_x, size_factor_y, s, zx, zy, w, ty
+                    ):
+                        return model.log_prob(
+                            (deltax, size_factor_x, size_factor_y, s, zx, zy, w, ty, X, Y)
+                        )
+
+                else:
+
+                    def target_log_prob_fn(
+                        deltax, s, zx, zy, w, ty
+                    ):
+                        return model.log_prob(
+                            (deltax, s, zx, zy, w, ty, X, Y)
+                        )
+
+
 
             else:
 
-                def target_log_prob_fn(size_factor_x, size_factor_y, s, zx, zy, w, ty):
-                    return model.log_prob(
-                        (size_factor_x, size_factor_y, s, zx, zy, w, ty, X, Y)
-                    )
+                if self.compute_size_factors:
+                    def target_log_prob_fn(size_factor_x, size_factor_y, s, zx, zy, w, ty):
+                        return model.log_prob(
+                            (size_factor_x, size_factor_y, s, zx, zy, w, ty, X, Y)
+                        )
+                else:
+                    def target_log_prob_fn(s, zx, zy, w, ty):
+                        return model.log_prob(
+                            (s, zx, zy, w, ty, X, Y)
+                        )
 
         # --------- Fit variational inference model using MC samples and gradient descent ----------
 

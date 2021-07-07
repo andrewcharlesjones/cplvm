@@ -1,6 +1,8 @@
-import matplotlib
 from cplvm import CPLVM
 from cplvm import CPLVMLogNormalApprox
+from pcpca import CPCA, PCPCA
+
+from clvm_gaussian import fit_model as fit_clvm_gaussian
 
 import functools
 import warnings
@@ -9,16 +11,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 import pandas as pd
-import os
-from scipy.stats import poisson
-from scipy.special import logsumexp
-
 
 import tensorflow.compat.v2 as tf
 import tensorflow_probability as tfp
 
 from tensorflow_probability import distributions as tfd
-from tensorflow_probability import bijectors as tfb
 
 import matplotlib
 import time
@@ -34,21 +31,22 @@ warnings.filterwarnings("ignore")
 
 if __name__ == "__main__":
 
-    n_samples_per_condition_list = [10, 100, 1000]
+    n_samples_list = [10, 50, 100, 500, 1000]
+    # n_samples_list = [10, 50]
+    num_datapoints_x, num_datapoints_y = 200, 200
     n_genes = 200
-    NUM_REPEATS = 2
+    NUM_REPEATS = 10
     latent_dim_shared, latent_dim_foreground = 3, 3
 
-    times = np.empty((NUM_REPEATS, len(n_samples_per_condition_list)))
+    times_cplvm = np.empty((NUM_REPEATS, len(n_samples_list)))
+    times_clvm_gaussian = np.empty((NUM_REPEATS, len(n_samples_list)))
+    times_pcpca = np.empty((NUM_REPEATS, len(n_samples_list)))
+    times_cpca = np.empty((NUM_REPEATS, len(n_samples_list)))
 
-    for ii, n_samples in enumerate(n_samples_per_condition_list):
+    for ii, n_samples in enumerate(n_samples_list):
 
         for jj in range(NUM_REPEATS):
-
-            num_datapoints_x, num_datapoints_y = n_samples, n_samples
-
             
-
             # ------- generate data ---------
 
             cplvm_for_data = CPLVM(
@@ -58,8 +56,8 @@ if __name__ == "__main__":
             concrete_cplvm_model = functools.partial(
                 cplvm_for_data.model,
                 data_dim=n_genes,
-                num_datapoints_x=num_datapoints_x,
-                num_datapoints_y=num_datapoints_y,
+                num_datapoints_x=n_samples,
+                num_datapoints_y=n_samples,
                 counts_per_cell_X=1,
                 counts_per_cell_Y=1,
                 is_H0=False,
@@ -69,7 +67,7 @@ if __name__ == "__main__":
             deltax, sf_x, sf_y, s, zx, zy, w, ty, X_sampled, Y_sampled = model.sample()
             X, Y = X_sampled.numpy(), Y_sampled.numpy()
 
-            # ------- fit model ---------
+            ##### CPLVM #####
 
             t0 = time.time()
 
@@ -85,20 +83,64 @@ if __name__ == "__main__":
 
             curr_time = t1 - t0
 
-            times[jj, ii] = curr_time
+            times_cplvm[jj, ii] = curr_time
 
 
-    times_df = pd.DataFrame(times, columns=n_samples_per_condition_list)
-    times_df_melted = pd.melt(times_df)
+            ##### CLVM (gaussian model) #####
+            t0 = time.time()
+            fit_clvm_gaussian(X, Y, latent_dim_shared, latent_dim_foreground, compute_size_factors=False, is_H0=False)
+            t1 = time.time()
+            curr_time = t1 - t0
+            times_clvm_gaussian[jj, ii] = curr_time
 
-    plt.figure(figsize=(7, 7))
-    sns.lineplot(data=times_df_melted, x="variable", y="value", ci=95, err_style="bars")
-    plt.xlabel("Number of samples\nin each condition")
-    plt.ylabel("Time (s)")
-    plt.tight_layout()
-    plt.savefig("../out/time_performance_num_samples_cplvm.png")
-    plt.show()
-    import ipdb; ipdb.set_trace()
+            ##### PCPCA #####
+            t0 = time.time()
+            pcpca = PCPCA(gamma=0.7, n_components=latent_dim_foreground)
+            pcpca.fit(X, Y)
+            pcpca.transform(X, Y)
+            t1 = time.time()
+            curr_time = t1 - t0
+            times_pcpca[jj, ii] = curr_time
+
+            ##### CPCA #####
+            t0 = time.time()
+            cpca = CPCA(gamma=0.7, n_components=latent_dim_foreground)
+            cpca.fit(X, Y)
+            cpca.transform(X, Y)
+            t1 = time.time()
+            curr_time = t1 - t0
+            times_cpca[jj, ii] = curr_time
+
+
+
+    times_cplvm_df = pd.DataFrame(times_cplvm, columns=n_samples_list)
+    times_cplvm_df_melted = pd.melt(times_cplvm_df)
+    times_cplvm_df_melted['model'] = ["cplvm" for _ in range(NUM_REPEATS * len(n_samples_list))]
+
+    times_clvm_df = pd.DataFrame(times_clvm_gaussian, columns=n_samples_list)
+    times_clvm_df_melted = pd.melt(times_clvm_df)
+    times_clvm_df_melted['model'] = ["clvm" for _ in range(NUM_REPEATS * len(n_samples_list))]
+
+    times_pcpca_df = pd.DataFrame(times_pcpca, columns=n_samples_list)
+    times_pcpca_df_melted = pd.melt(times_pcpca_df)
+    times_pcpca_df_melted['model'] = ["pcpca" for _ in range(NUM_REPEATS * len(n_samples_list))]
+
+    times_cpca_df = pd.DataFrame(times_cpca, columns=n_samples_list)
+    times_cpca_df_melted = pd.melt(times_cpca_df)
+    times_cpca_df_melted['model'] = ["cpca" for _ in range(NUM_REPEATS * len(n_samples_list))]
+
+    times_df_melted = pd.concat([times_cplvm_df_melted, times_clvm_df_melted, times_pcpca_df_melted, times_cpca_df_melted], axis=0)
+    times_df_melted.to_csv("../out/time_performance_num_samples.csv")
+
+    # plt.figure(figsize=(7, 7))
+    # sns.lineplot(data=times_df_melted, x="variable", y="value", ci=95, err_style="bars", color="black")
+    # plt.xlabel("Number of genes")
+    # plt.ylabel("Time (s)")
+    # plt.xscale('log')
+    # plt.tight_layout()
+    # plt.savefig("../out/time_performance_num_genes_cplvm.png")
+    # plt.show()
+    # import ipdb; ipdb.set_trace()
 
 
 

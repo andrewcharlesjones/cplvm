@@ -21,7 +21,7 @@ def mean_confidence_interval(data, confidence=0.95):
 
 
 # Load BFs
-all_elbos = np.load("./out/bfs_targeted.npy")
+all_elbos = np.load("../out/bfs_targeted.npy")
 n_gene_sets = 10  # all_elbos.shape[1]
 gene_set_names = ["Set {}".format(x + 1) for x in range(n_gene_sets)]
 
@@ -35,7 +35,7 @@ num_shuffled_null = len(all_elbos[0]) - n_gene_sets
 shuffled_null_bfs = all_elbos[:, -num_shuffled_null:].flatten()
 gene_set_names.extend(["Shuffled null" for _ in range(num_shuffled_null)])
 
-
+# import ipdb; ipdb.set_trace()
 # Plot boxplot
 plt.figure(figsize=(14, 7))
 ax = sns.boxplot(
@@ -73,5 +73,5 @@ plt.xlabel("")
 plt.xticks(rotation=90)
 plt.title("Gene set ELBO Bayes factors")
 plt.tight_layout()
-plt.savefig("./out/bfs_targeted_gene_sets_boxplot.png")
+# plt.savefig("./out/bfs_targeted_gene_sets_boxplot.png")
 plt.show()
