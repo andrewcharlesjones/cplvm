@@ -52,18 +52,27 @@ if __name__ == "__main__":
             X = np.random.poisson(xrate, size=(data_dim, num_datapoints_x))
             Y = np.random.poisson(1, size=(data_dim, num_datapoints_x))
 
-            cplvm = CPLVM(k_shared=latent_dim_shared, k_foreground=latent_dim_foreground, compute_size_factors=False)
+            cplvm = CPLVM(
+                k_shared=latent_dim_shared,
+                k_foreground=latent_dim_foreground,
+                compute_size_factors=False,
+            )
 
             approx_model = CPLVMLogNormalApprox(
-                X, Y, latent_dim_shared, latent_dim_foreground, offset_term=True, compute_size_factors=False
+                X,
+                Y,
+                latent_dim_shared,
+                latent_dim_foreground,
+                offset_term=True,
+                compute_size_factors=False,
             )
             results = cplvm._fit_model_vi(
                 X, Y, approx_model, is_H0=False, offset_term=True
             )
 
-            qdeltax_mean = results['approximate_model'].qdeltax_mean
-            qdeltax_stddv = results['approximate_model'].qdeltax_stddv
-            deltax_mean = np.exp(qdeltax_mean + 0.5 * qdeltax_stddv**2)
+            qdeltax_mean = results["approximate_model"].qdeltax_mean
+            qdeltax_stddv = results["approximate_model"].qdeltax_stddv
+            deltax_mean = np.exp(qdeltax_mean + 0.5 * qdeltax_stddv ** 2)
 
             delta_list_gene1[jj, ii] = deltax_mean.squeeze()[0]
             delta_list_gene2[jj, ii] = deltax_mean.squeeze()[1]
@@ -79,12 +88,24 @@ if __name__ == "__main__":
 
     plt.figure(figsize=(14, 7))
     plt.subplot(121)
-    sns.lineplot(data=delta_gene1_df_melted, x="variable", y="value", err_style="bars", color="black")
+    sns.lineplot(
+        data=delta_gene1_df_melted,
+        x="variable",
+        y="value",
+        err_style="bars",
+        color="black",
+    )
     plt.xlabel(r"$\lambda$")
     plt.ylabel(r"$\delta$")
     plt.title("Gene 1")
     plt.subplot(122)
-    sns.lineplot(data=delta_gene2_df_melted, x="variable", y="value", err_style="bars", color="black")
+    sns.lineplot(
+        data=delta_gene2_df_melted,
+        x="variable",
+        y="value",
+        err_style="bars",
+        color="black",
+    )
     plt.xlabel(r"$\lambda$")
     plt.ylabel(r"$\delta$")
     plt.title("Gene 2")
@@ -94,4 +115,3 @@ if __name__ == "__main__":
     import ipdb
 
     ipdb.set_trace()
-        

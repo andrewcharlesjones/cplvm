@@ -58,14 +58,12 @@ if __name__ == "__main__":
 
     alpha = 0.05
 
-
     for jj in range(NUM_REPEATS):
-
 
         #################################
         ######### H1 is true ############
         #################################
-        
+
         # ------- generate data ---------
 
         # Generate data
@@ -111,7 +109,6 @@ if __name__ == "__main__":
         test_stats_experiment.append(curr_output.values[0, 0])
         decisions_experiment.append(curr_output.values[0, 1] < alpha)
 
-
         #################################
         ######### H0 is true ############
         #################################
@@ -148,7 +145,3 @@ if __name__ == "__main__":
         "../out/li2012/test_stats_shuffled.npy",
         test_stats_shuffled,
     )
-        
-            
-
-

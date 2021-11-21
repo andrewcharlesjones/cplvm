@@ -25,7 +25,7 @@ class CPLVMLogNormalApprox(ApproximateModel):
         offset_term=True,
         num_test_genes=0,
         is_H0=False,
-        compute_size_factors=True
+        compute_size_factors=True,
     ):
 
         self.data_dim, self.num_datapoints_x = X.shape

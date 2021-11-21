@@ -50,13 +50,15 @@ class CGLVM:
         if self.compute_size_factors:
             size_factor_x = yield tfd.LogNormal(
                 loc=np.mean(np.log(counts_per_cell_X)) * tf.ones([1, num_datapoints_x]),
-                scale=np.std(np.log(counts_per_cell_X)) * tf.ones([1, num_datapoints_x]),
+                scale=np.std(np.log(counts_per_cell_X))
+                * tf.ones([1, num_datapoints_x]),
                 name="size_factor_x",
             )
 
             size_factor_y = yield tfd.LogNormal(
                 loc=np.mean(np.log(counts_per_cell_Y)) * tf.ones([1, num_datapoints_y]),
-                scale=np.std(np.log(counts_per_cell_Y)) * tf.ones([1, num_datapoints_y]),
+                scale=np.std(np.log(counts_per_cell_Y))
+                * tf.ones([1, num_datapoints_y]),
                 name="size_factor_y",
             )
         else:
@@ -134,9 +136,7 @@ class CGLVM:
                 name="y",
             )
 
-    def fit_model_vi(
-        self, X, Y, approximate_model, is_H0=False
-    ):
+    def fit_model_vi(self, X, Y, approximate_model, is_H0=False):
 
         assert X.shape[0] == Y.shape[0]
         data_dim = X.shape[0]
@@ -175,21 +175,30 @@ class CGLVM:
         else:
 
             if self.compute_size_factors:
+
                 def target_log_prob_fn(
                     mu_x, mu_y, size_factor_x, size_factor_y, s, zx, zy, w, ty
                 ):
                     return model.log_prob(
-                        (mu_x, mu_y, size_factor_x, size_factor_y, s, zx, zy, w, ty, X, Y)
+                        (
+                            mu_x,
+                            mu_y,
+                            size_factor_x,
+                            size_factor_y,
+                            s,
+                            zx,
+                            zy,
+                            w,
+                            ty,
+                            X,
+                            Y,
+                        )
                     )
 
             else:
 
-                def target_log_prob_fn(
-                    mu_x, mu_y, s, zx, zy, w, ty
-                ):
-                    return model.log_prob(
-                        (mu_x, mu_y, s, zx, zy, w, ty, X, Y)
-                    )
+                def target_log_prob_fn(mu_x, mu_y, s, zx, zy, w, ty):
+                    return model.log_prob((mu_x, mu_y, s, zx, zy, w, ty, X, Y))
 
         # --------- Fit variational inference model using MC samples and gradient descent ----------
 

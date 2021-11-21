@@ -35,7 +35,6 @@ p = 2
 # Y = np.concatenate([Y1, Y2], axis=0)
 
 
-
 ############ Generate data ############
 
 # Covariance of RVs
@@ -92,30 +91,45 @@ for ii, gene2_offset in enumerate(gene2_offset_list):
 
     # Fit model
 
-    cplvm = CPLVM(k_shared=latent_dim_shared, k_foreground=latent_dim_foreground, compute_size_factors=False)
+    cplvm = CPLVM(
+        k_shared=latent_dim_shared,
+        k_foreground=latent_dim_foreground,
+        compute_size_factors=False,
+    )
 
     approx_model = CPLVMLogNormalApprox(
-        X_shifted.T, Y.T, latent_dim_shared, latent_dim_foreground, offset_term=True, compute_size_factors=False
+        X_shifted.T,
+        Y.T,
+        latent_dim_shared,
+        latent_dim_foreground,
+        offset_term=True,
+        compute_size_factors=False,
     )
     results = cplvm._fit_model_vi(
         X_shifted.T, Y.T, approx_model, is_H0=False, offset_term=True
     )
 
-    W = np.exp(results["approximate_model"].qw_mean.numpy() + results["approximate_model"].qw_stddv.numpy() ** 2)
-    S = np.exp(results["approximate_model"].qs_mean.numpy() + results["approximate_model"].qs_stddv.numpy() ** 2)
+    W = np.exp(
+        results["approximate_model"].qw_mean.numpy()
+        + results["approximate_model"].qw_stddv.numpy() ** 2
+    )
+    S = np.exp(
+        results["approximate_model"].qs_mean.numpy()
+        + results["approximate_model"].qs_stddv.numpy() ** 2
+    )
 
     # qdeltax_mean = results['approximate_model'].qdeltax_mean
     # qdeltax_stddv = results['approximate_model'].qdeltax_stddv
     # deltax_mean = np.exp(qdeltax_mean + 0.5 * qdeltax_stddv**2)
 
-
     plt.subplot(1, len(gene2_offset_list), ii + 1)
-
 
     # Plot
     plt.xlim([-3, 38])
     plt.ylim([-3, 38])
-    plt.scatter(X_shifted[:, 0], X_shifted[:, 1], label="Background", color="gray", alpha=0.4)
+    plt.scatter(
+        X_shifted[:, 0], X_shifted[:, 1], label="Background", color="gray", alpha=0.4
+    )
 
     S_slope = S[1, 0] / S[0, 0]
     S_intercept = 0
@@ -125,11 +139,14 @@ for ii, gene2_offset in enumerate(gene2_offset_list):
     y_vals = S_slope * x_vals
     plt.plot(x_vals, y_vals, "--", label="S1", color="black", linewidth=3)
 
-
     W_slope = W[1, 0] / W[0, 0]
     W_intercept = 0
     plt.scatter(
-        Y[: m // 2, 0], Y[: m // 2, 1], label="Foreground group 1", color="green", alpha=0.4
+        Y[: m // 2, 0],
+        Y[: m // 2, 1],
+        label="Foreground group 1",
+        color="green",
+        alpha=0.4,
     )
     plt.scatter(
         Y[m // 2 :, 0],
@@ -146,17 +163,12 @@ for ii, gene2_offset in enumerate(gene2_offset_list):
     y_vals = W_slope * x_vals
     plt.plot(x_vals, y_vals, "--", label="W1", color="red", linewidth=3)
 
-
     W_slope = W[1, 1] / W[0, 1]
     y_vals = W_slope * x_vals
     plt.plot(x_vals, y_vals, "--", label="W2", color="red", linewidth=3)
 
-
-
-
     plt.xlabel("Gene 1")
     plt.ylabel("Gene 2")
-
 
     plt.legend(prop={"size": 20})
     # dx2 = round(deltax_mean.squeeze()[1], 2)
@@ -165,4 +177,6 @@ for ii, gene2_offset in enumerate(gene2_offset_list):
 
 
 plt.show()
-import ipdb; ipdb.set_trace()
+import ipdb
+
+ipdb.set_trace()

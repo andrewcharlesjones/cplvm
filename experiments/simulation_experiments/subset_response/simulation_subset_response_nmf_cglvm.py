@@ -64,15 +64,9 @@ if __name__ == "__main__":
     actual_w = np.random.gamma(a, 1 / b, size=(data_dim, latent_dim_target))
     # actual_w[-data_dim//frac_response:, 0] = np.random.gamma(40, 1/5, size=(data_dim//frac_response))
 
-    actual_zx = np.random.gamma(
-        a, 1 / b, size=(latent_dim_shared, num_datapoints_x)
-    )
-    actual_zy = np.random.gamma(
-        a, 1 / b, size=(latent_dim_shared, num_datapoints_y)
-    )
-    actual_ty = np.random.gamma(
-        a, 1 / b, size=(latent_dim_target, num_datapoints_y)
-    )
+    actual_zx = np.random.gamma(a, 1 / b, size=(latent_dim_shared, num_datapoints_x))
+    actual_zy = np.random.gamma(a, 1 / b, size=(latent_dim_shared, num_datapoints_y))
+    actual_ty = np.random.gamma(a, 1 / b, size=(latent_dim_target, num_datapoints_y))
 
     actual_ty[0, : num_datapoints_y // 2] = np.random.gamma(
         1, 1 / 20, size=(num_datapoints_y // 2)
@@ -101,38 +95,59 @@ if __name__ == "__main__":
         np.concatenate([x_train, y_train], axis=1).T
     )
 
-    
     fg_reduced = reduced_data[num_datapoints_x:, :]
 
     plt.subplot(121)
-    plt.scatter(fg_reduced[group1_idx, 0], fg_reduced[group1_idx, 1], color="green", label="Foreground group 1")
-    plt.scatter(fg_reduced[group2_idx, 0], fg_reduced[group1_idx, 1], color="orange", label="Foreground group 2")
+    plt.scatter(
+        fg_reduced[group1_idx, 0],
+        fg_reduced[group1_idx, 1],
+        color="green",
+        label="Foreground group 1",
+    )
+    plt.scatter(
+        fg_reduced[group2_idx, 0],
+        fg_reduced[group1_idx, 1],
+        color="orange",
+        label="Foreground group 2",
+    )
     plt.xlabel("Latent dim 1")
     plt.ylabel("Latent dim 2")
     plt.title("NMF")
     plt.legend(fontsize=20)
-    
 
     ######### CGLVM #########
 
-    
-
     cglvm = CGLVM(k_shared=2, k_foreground=2, compute_size_factors=False)
-    approx_model = CGLVMMFGaussianApprox(X=x_train, Y=y_train, k_shared=2, k_foreground=2, num_test_genes=0, is_H0=False, compute_size_factors=False)
-    results = cglvm.fit_model_vi(
-                x_train, y_train, approx_model, is_H0=False
-            )
-    fg_reduced = results['approx_model'].qty_mean.numpy().T
+    approx_model = CGLVMMFGaussianApprox(
+        X=x_train,
+        Y=y_train,
+        k_shared=2,
+        k_foreground=2,
+        num_test_genes=0,
+        is_H0=False,
+        compute_size_factors=False,
+    )
+    results = cglvm.fit_model_vi(x_train, y_train, approx_model, is_H0=False)
+    fg_reduced = results["approx_model"].qty_mean.numpy().T
 
     plt.subplot(122)
-    plt.scatter(fg_reduced[group1_idx, 0], fg_reduced[group1_idx, 1], color="green", label="Foreground group 1")
-    plt.scatter(fg_reduced[group2_idx, 0], fg_reduced[group1_idx, 1], color="orange", label="Foreground group 2")
+    plt.scatter(
+        fg_reduced[group1_idx, 0],
+        fg_reduced[group1_idx, 1],
+        color="green",
+        label="Foreground group 1",
+    )
+    plt.scatter(
+        fg_reduced[group2_idx, 0],
+        fg_reduced[group1_idx, 1],
+        color="orange",
+        label="Foreground group 2",
+    )
     plt.xlabel("Latent dim 1")
     plt.ylabel("Latent dim 2")
     plt.title("CGLVM")
     plt.legend(fontsize=20)
 
-    
     plt.tight_layout()
     plt.savefig("../out/simulation_scatter_nmf_cglvm.png")
     plt.show()

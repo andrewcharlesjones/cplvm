@@ -73,7 +73,8 @@ def test_loss_drop():
         results = cplvm._fit_model_vi(
             X, Y, approx_model, compute_size_factors=True, is_H0=False
         )
-        assert results['loss_trace'][0] > results['loss_trace'][-1]
+        assert results["loss_trace"][0] > results["loss_trace"][-1]
+
 
 if __name__ == "__main__":
     test_loss_drop()

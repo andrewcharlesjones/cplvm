@@ -16,7 +16,16 @@ from cplvm.approximations.approx_model import ApproximateModel
 
 
 class CGLVMMFGaussianApprox(ApproximateModel):
-    def __init__(self, X, Y, k_shared, k_foreground, num_test_genes=0, is_H0=False, compute_size_factors=True):
+    def __init__(
+        self,
+        X,
+        Y,
+        k_shared,
+        k_foreground,
+        num_test_genes=0,
+        is_H0=False,
+        compute_size_factors=True,
+    ):
 
         self.data_dim, self.num_datapoints_x = X.shape
         self.num_datapoints_y = Y.shape[1]
@@ -104,7 +113,7 @@ class CGLVMMFGaussianApprox(ApproximateModel):
                     scale=self.qsize_factor_y_stddv,
                     name="qsize_factor_y",
                 )
-                
+
             qs = yield tfd.Normal(loc=self.qs_mean, scale=self.qs_stddv, name="qs")
             qzx = yield tfd.Normal(loc=self.qzx_mean, scale=self.qzx_stddv, name="qzx")
             qzy = yield tfd.Normal(loc=self.qzy_mean, scale=self.qzy_stddv, name="qzy")

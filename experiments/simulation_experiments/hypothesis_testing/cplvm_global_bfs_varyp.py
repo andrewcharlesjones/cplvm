@@ -44,11 +44,10 @@ if __name__ == "__main__":
         latent_dim_shared = 3
         latent_dim_foreground = 3
 
-        
         bfs_experiment = []
         # bfs_control = []
         bfs_shuffled = []
-        
+
         for jj, data_dim in enumerate(p_list):
 
             cplvm_for_data = CPLVM(
@@ -63,7 +62,7 @@ if __name__ == "__main__":
                 counts_per_cell_X=1,
                 counts_per_cell_Y=1,
                 is_H0=False,
-                offset_term=True
+                offset_term=True,
             )
 
             model = tfd.JointDistributionCoroutineAutoBatched(concrete_clvm_model)
@@ -74,16 +73,32 @@ if __name__ == "__main__":
             X, Y = X_sampled.numpy(), Y_sampled.numpy()
 
             ## Run H0 and H1 models on data
-            cplvm = CPLVM(k_shared=latent_dim_shared, k_foreground=latent_dim_foreground)
+            cplvm = CPLVM(
+                k_shared=latent_dim_shared, k_foreground=latent_dim_foreground
+            )
             approx_model_H0 = CPLVMLogNormalApprox(
-                X, Y, latent_dim_shared, latent_dim_foreground, offset_term=True, is_H0=True
+                X,
+                Y,
+                latent_dim_shared,
+                latent_dim_foreground,
+                offset_term=True,
+                is_H0=True,
             )
             approx_model_H1 = CPLVMLogNormalApprox(
-                X, Y, latent_dim_shared, latent_dim_foreground, offset_term=True, is_H0=False
+                X,
+                Y,
+                latent_dim_shared,
+                latent_dim_foreground,
+                offset_term=True,
+                is_H0=False,
             )
-            H1_results = cplvm._fit_model_vi(X, Y, approx_model_H1, offset_term=True, is_H0=False)
-            H0_results = cplvm._fit_model_vi(X, Y, approx_model_H0, offset_term=True, is_H0=True)
-            
+            H1_results = cplvm._fit_model_vi(
+                X, Y, approx_model_H1, offset_term=True, is_H0=False
+            )
+            H0_results = cplvm._fit_model_vi(
+                X, Y, approx_model_H0, offset_term=True, is_H0=True
+            )
+
             H1_elbo = (
                 -1
                 * H1_results["loss_trace"][-1].numpy()
@@ -114,16 +129,32 @@ if __name__ == "__main__":
 
             ## Run H0 and H1 models on data
             ## Run H0 and H1 models on data
-            cplvm = CPLVM(k_shared=latent_dim_shared, k_foreground=latent_dim_foreground)
+            cplvm = CPLVM(
+                k_shared=latent_dim_shared, k_foreground=latent_dim_foreground
+            )
             approx_model_H0 = CPLVMLogNormalApprox(
-                X, Y, latent_dim_shared, latent_dim_foreground, offset_term=True, is_H0=True
+                X,
+                Y,
+                latent_dim_shared,
+                latent_dim_foreground,
+                offset_term=True,
+                is_H0=True,
             )
             approx_model_H1 = CPLVMLogNormalApprox(
-                X, Y, latent_dim_shared, latent_dim_foreground, offset_term=True, is_H0=False
+                X,
+                Y,
+                latent_dim_shared,
+                latent_dim_foreground,
+                offset_term=True,
+                is_H0=False,
             )
-            H1_results = cplvm._fit_model_vi(X, Y, approx_model_H1, offset_term=True, is_H0=False)
-            H0_results = cplvm._fit_model_vi(X, Y, approx_model_H0, offset_term=True, is_H0=True)
-            
+            H1_results = cplvm._fit_model_vi(
+                X, Y, approx_model_H1, offset_term=True, is_H0=False
+            )
+            H0_results = cplvm._fit_model_vi(
+                X, Y, approx_model_H0, offset_term=True, is_H0=True
+            )
+
             H1_elbo = (
                 -1
                 * H1_results["loss_trace"][-1].numpy()
@@ -164,20 +195,24 @@ if __name__ == "__main__":
             #     ),
             #     y_score=np.concatenate([bfs_shuffled, bfs_experiment]),
             # )
-            
 
-        
-        results_alternative_df = pd.melt(pd.DataFrame(results_alternative[:ii+1, :], columns=p_list))
-        results_alternative_df['context'] = "Perturbed"
-        results_null_df = pd.melt(pd.DataFrame(results_null[:ii+1, :], columns=p_list))
-        results_null_df['context'] = "Shuffled null"
+        results_alternative_df = pd.melt(
+            pd.DataFrame(results_alternative[: ii + 1, :], columns=p_list)
+        )
+        results_alternative_df["context"] = "Perturbed"
+        results_null_df = pd.melt(
+            pd.DataFrame(results_null[: ii + 1, :], columns=p_list)
+        )
+        results_null_df["context"] = "Shuffled null"
 
         results_df = pd.concat([results_alternative_df, results_null_df], axis=0)
 
         results_df.to_csv("../out/data_dimension_vs_ebfs.csv")
 
         plt.figure(figsize=(7, 7))
-        g = sns.lineplot(data=results_df, x="variable", y="value", hue="context", err_style="bars")
+        g = sns.lineplot(
+            data=results_df, x="variable", y="value", hue="context", err_style="bars"
+        )
         g.legend_.set_title(None)
         plt.xlabel("Data dimension")
         plt.ylabel("EBF")
@@ -186,5 +221,3 @@ if __name__ == "__main__":
         # plt.show()
         plt.close()
         # import ipdb; ipdb.set_trace()
-
-

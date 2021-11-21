@@ -47,11 +47,10 @@ if __name__ == "__main__":
 
         for jj in range(NUM_REPEATS):
 
-
             #################################
             ######### H1 is true ############
             #################################
-            
+
             # ------- generate data ---------
 
             cplvm_for_data = CPLVM(
@@ -85,7 +84,6 @@ if __name__ == "__main__":
             curr_output = pd.read_csv("./tmp/curr_johnston_output.csv", index_col=0)
             test_stats_experiment.append(curr_output.values[0, 0])
             decisions_experiment.append(curr_output.values[0, 1] < alpha)
-
 
             #################################
             ######### H0 is true ############
@@ -137,10 +135,5 @@ if __name__ == "__main__":
             "../out/johnstone/test_stats_shuffled_p{}.npy".format(n_genes),
             test_stats_shuffled,
         )
-        
 
     # import ipdb; ipdb.set_trace()
-
-            
-
-

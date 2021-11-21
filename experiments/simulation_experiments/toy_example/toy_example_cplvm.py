@@ -200,8 +200,6 @@ y_vals = S_slope * x_vals
 plt.plot(x_vals, y_vals, "--", color="black", linewidth=3)
 
 
-
-
 # Y_mean = np.mean(Y, axis=0)
 W_slope = W[1, 0] / W[0, 0]
 W_intercept = 0

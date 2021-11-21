@@ -46,64 +46,104 @@ plt.show()
 Now, we fit the CPLVM.
 
 ```python
-# Initialize the model
-cplvm = CPLVM(k_shared=1, k_foreground=2)
+# Set up CPLVM
+cplvm = CPLVM(
+    k_shared=1,
+    k_foreground=2,
+    compute_size_factors=True,
+    offset_term=False)
+
+# Set up approximate model
+approx_model = CPLVMLogNormalApprox(
+    X.T, 
+    Y.T, 
+    k_shared=1, 
+    k_foreground=2, 
+    compute_size_factors=True, 
+    offset_term=False
+)
 
 # Fit model
-model_output = cplvm.fit_model_vi(X.T, Y.T, compute_size_factors=True, is_H0=False, offset_term=False)
+model_output = cplvm.fit_model_vi(
+    X.T,
+    Y.T,
+    approximate_model=approx_model,
+)
 ```
 
 Let's inspect the fitted loadings matrices. To do this, let's take the mean of the variational distribution for each component. The variational families are log-normal.
 
 ```python
-# Shared loadings
-S = np.exp(model_output['qs_mean'].numpy() + 0.5 * model_output['qs_stddv'].numpy()**2)
-
 # Foreground-specific loadings
-W = np.exp(model_output['qw_mean'].numpy() + 0.5 * model_output['qw_stddv'].numpy()**2)
+W_mean = model_output["approximate_model"].qw_mean.numpy()
+W_stddev = model_output["approximate_model"].qw_stddv.numpy()
+W = np.exp(W_mean + W_stddev ** 2)
+
+# Shared loadings
+S_mean = model_output["approximate_model"].qs_mean.numpy()
+S_stddev = model_output["approximate_model"].qs_stddv.numpy()
+S = np.exp(S_mean + S_stddev ** 2)
 ```
 
 Now we can visualize each component as a 1D line.
 
 ```python
+## Plot results
+plt.figure(figsize=(12, 7))
+
 # Plot data
-plt.scatter(X[:, 0], X[:, 1], color="gray", alpha=0.8)
-plt.scatter(Y[:m//2, 0], Y[:m//2, 1], color="green", alpha=0.8)
-plt.scatter(Y[m//2:, 0], Y[m//2:, 1], color="orange", alpha=0.8)
+plt.scatter(X[:, 0], X[:, 1], label="Background", color="gray", alpha=0.4)
+plt.scatter(
+    Y[: m // 2, 0], Y[: m // 2, 1], label="Foreground group 1", color="green", alpha=0.4
+)
+plt.scatter(
+    Y[m // 2 :, 0],
+    Y[m // 2 :, 1],
+    label="Foreground group 2",
+    color="orange",
+    alpha=0.4,
+)
 
-X_mean = np.mean(X, axis=0)
-Y_mean = np.mean(Y, axis=0)
-
-# Plot S
-S_slope = S[1, 0] / S[0, 0]
-S_intercept = X_mean[1] - X_mean[0] * S_slope
 axes = plt.gca()
 xlims = np.array(axes.get_xlim())
+ylims = np.array(axes.get_ylim())
+
+# Plot S
+X_mean = np.mean(X, axis=0)
+S_slope = S[1, 0] / S[0, 0]
+S_intercept = X_mean[1] - X_mean[0] * S_slope
 x_vals = np.linspace(xlims[0], xlims[1], 100)
 y_vals = S_slope * x_vals + S_intercept
-plt.plot(x_vals, y_vals, '--', label="S", color="black", linewidth=3)
+plt.plot(x_vals, y_vals, "--", label="S", color="black", linewidth=3)
 
-# Plot first W component
+
+# Plot W1
+Y_mean = np.mean(Y, axis=0)
+
 W_slope = W[1, 0] / W[0, 0]
 W_intercept = Y_mean[1] - Y_mean[0] * W_slope
-axes = plt.gca()
-ylims = np.array(axes.get_ylim())
 y_vals = np.linspace(ylims[0], ylims[1], 100)
 y_vals = W_slope * x_vals + W_intercept
-plt.plot(x_vals, y_vals, '--', label="W1", color="red", linewidth=3)
+plt.plot(x_vals, y_vals, "--", label="W1", color="red", linewidth=3)
 
-# Plot second W component
+# Plot W2
 W_slope = W[1, 1] / W[0, 1]
 W_intercept = Y_mean[1] - Y_mean[0] * W_slope
-axes = plt.gca()
 ylims = np.array(axes.get_ylim())
 y_vals = np.linspace(ylims[0], ylims[1], 100)
 y_vals = W_slope * x_vals + W_intercept
-plt.plot(x_vals, y_vals, '--', label="W2", color="blue", linewidth=3)
+plt.plot(x_vals, y_vals, "--", label="W2", color="blue", linewidth=3)
 
-plt.title("CPLVM")
+plt.xlim(xlims)
+plt.ylim(ylims)
+
+
+plt.legend(bbox_to_anchor=(1.2, 1.05), fontsize=20)
+
 plt.xlabel("Gene 1")
 plt.ylabel("Gene 2")
+plt.title("CPLVM")
+plt.tight_layout()
 plt.show()
 ```
 

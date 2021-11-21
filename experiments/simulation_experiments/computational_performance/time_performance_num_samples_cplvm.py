@@ -46,7 +46,7 @@ if __name__ == "__main__":
     for ii, n_samples in enumerate(n_samples_list):
 
         for jj in range(NUM_REPEATS):
-            
+
             # ------- generate data ---------
 
             cplvm_for_data = CPLVM(
@@ -71,7 +71,9 @@ if __name__ == "__main__":
 
             t0 = time.time()
 
-            cplvm = CPLVM(k_shared=latent_dim_shared, k_foreground=latent_dim_foreground)
+            cplvm = CPLVM(
+                k_shared=latent_dim_shared, k_foreground=latent_dim_foreground
+            )
             approx_model = CPLVMLogNormalApprox(
                 X, Y, latent_dim_shared, latent_dim_foreground
             )
@@ -85,10 +87,16 @@ if __name__ == "__main__":
 
             times_cplvm[jj, ii] = curr_time
 
-
             ##### CLVM (gaussian model) #####
             t0 = time.time()
-            fit_clvm_gaussian(X, Y, latent_dim_shared, latent_dim_foreground, compute_size_factors=False, is_H0=False)
+            fit_clvm_gaussian(
+                X,
+                Y,
+                latent_dim_shared,
+                latent_dim_foreground,
+                compute_size_factors=False,
+                is_H0=False,
+            )
             t1 = time.time()
             curr_time = t1 - t0
             times_clvm_gaussian[jj, ii] = curr_time
@@ -111,25 +119,39 @@ if __name__ == "__main__":
             curr_time = t1 - t0
             times_cpca[jj, ii] = curr_time
 
-
-
     times_cplvm_df = pd.DataFrame(times_cplvm, columns=n_samples_list)
     times_cplvm_df_melted = pd.melt(times_cplvm_df)
-    times_cplvm_df_melted['model'] = ["cplvm" for _ in range(NUM_REPEATS * len(n_samples_list))]
+    times_cplvm_df_melted["model"] = [
+        "cplvm" for _ in range(NUM_REPEATS * len(n_samples_list))
+    ]
 
     times_clvm_df = pd.DataFrame(times_clvm_gaussian, columns=n_samples_list)
     times_clvm_df_melted = pd.melt(times_clvm_df)
-    times_clvm_df_melted['model'] = ["clvm" for _ in range(NUM_REPEATS * len(n_samples_list))]
+    times_clvm_df_melted["model"] = [
+        "clvm" for _ in range(NUM_REPEATS * len(n_samples_list))
+    ]
 
     times_pcpca_df = pd.DataFrame(times_pcpca, columns=n_samples_list)
     times_pcpca_df_melted = pd.melt(times_pcpca_df)
-    times_pcpca_df_melted['model'] = ["pcpca" for _ in range(NUM_REPEATS * len(n_samples_list))]
+    times_pcpca_df_melted["model"] = [
+        "pcpca" for _ in range(NUM_REPEATS * len(n_samples_list))
+    ]
 
     times_cpca_df = pd.DataFrame(times_cpca, columns=n_samples_list)
     times_cpca_df_melted = pd.melt(times_cpca_df)
-    times_cpca_df_melted['model'] = ["cpca" for _ in range(NUM_REPEATS * len(n_samples_list))]
+    times_cpca_df_melted["model"] = [
+        "cpca" for _ in range(NUM_REPEATS * len(n_samples_list))
+    ]
 
-    times_df_melted = pd.concat([times_cplvm_df_melted, times_clvm_df_melted, times_pcpca_df_melted, times_cpca_df_melted], axis=0)
+    times_df_melted = pd.concat(
+        [
+            times_cplvm_df_melted,
+            times_clvm_df_melted,
+            times_pcpca_df_melted,
+            times_cpca_df_melted,
+        ],
+        axis=0,
+    )
     times_df_melted.to_csv("../out/time_performance_num_samples.csv")
 
     # plt.figure(figsize=(7, 7))
@@ -141,8 +163,3 @@ if __name__ == "__main__":
     # plt.savefig("../out/time_performance_num_genes_cplvm.png")
     # plt.show()
     # import ipdb; ipdb.set_trace()
-
-
-
-
-        

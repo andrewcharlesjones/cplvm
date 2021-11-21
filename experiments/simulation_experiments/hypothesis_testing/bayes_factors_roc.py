@@ -40,11 +40,10 @@ if __name__ == "__main__":
         latent_dim_shared = 3
         latent_dim_foreground = 3
 
-        
         bfs_experiment = []
         # bfs_control = []
         bfs_shuffled = []
-        
+
         for data_dim in p_list:
 
             cplvm_for_data = CPLVM(
@@ -72,17 +71,30 @@ if __name__ == "__main__":
                 k_shared=latent_dim_shared, k_foreground=latent_dim_foreground
             )
             approx_model = CPLVMLogNormalApprox(
-                X, Y, latent_dim_shared, latent_dim_foreground, # offset_term=False
+                X,
+                Y,
+                latent_dim_shared,
+                latent_dim_foreground,  # offset_term=False
             )
 
             H1_results = cplvm._fit_model_vi(
-                X, Y, approx_model, compute_size_factors=True, is_H0=False, # offset_term=False
+                X,
+                Y,
+                approx_model,
+                compute_size_factors=True,
+                is_H0=False,  # offset_term=False
             )
 
             approx_model = CPLVMLogNormalApprox(
-                X, Y, latent_dim_shared, latent_dim_foreground, is_H0=True, # offset_term=False
+                X,
+                Y,
+                latent_dim_shared,
+                latent_dim_foreground,
+                is_H0=True,  # offset_term=False
             )
-            H0_results = cplvm._fit_model_vi(X, Y, approx_model, compute_size_factors=True, is_H0=True) # offset_term=False)
+            H0_results = cplvm._fit_model_vi(
+                X, Y, approx_model, compute_size_factors=True, is_H0=True
+            )  # offset_term=False)
 
             H1_elbo = (
                 -1
@@ -117,16 +129,29 @@ if __name__ == "__main__":
             )
 
             approx_model = CPLVMLogNormalApprox(
-                X, Y, latent_dim_shared, latent_dim_foreground, #, offset_term=False
+                X,
+                Y,
+                latent_dim_shared,
+                latent_dim_foreground,  # , offset_term=False
             )
             H1_results = cplvm._fit_model_vi(
-                X, Y, approx_model, compute_size_factors=True, is_H0=False, # offset_term=False
+                X,
+                Y,
+                approx_model,
+                compute_size_factors=True,
+                is_H0=False,  # offset_term=False
             )
 
             approx_model = CPLVMLogNormalApprox(
-                X, Y, latent_dim_shared, latent_dim_foreground, is_H0=True, #, offset_term=False
+                X,
+                Y,
+                latent_dim_shared,
+                latent_dim_foreground,
+                is_H0=True,  # , offset_term=False
             )
-            H0_results = cplvm._fit_model_vi(X, Y, approx_model, compute_size_factors=True, is_H0=True) #, offset_term=False)
+            H0_results = cplvm._fit_model_vi(
+                X, Y, approx_model, compute_size_factors=True, is_H0=True
+            )  # , offset_term=False)
 
             H1_elbo = (
                 -1
@@ -148,7 +173,11 @@ if __name__ == "__main__":
             bfs_shuffled = list(np.array(bfs_shuffled)[~np.isnan(bfs_shuffled)])
             # tpr_true, fpr_true, thresholds_true = roc_curve(y_true=np.concatenate([np.zeros(len(bfs_control)), np.ones(len(bfs_experiment))]), y_score=np.concatenate([bfs_control, bfs_experiment]))
 
-            print(np.concatenate([np.zeros(len(bfs_shuffled)), np.ones(len(bfs_experiment))]))
+            print(
+                np.concatenate(
+                    [np.zeros(len(bfs_shuffled)), np.ones(len(bfs_experiment))]
+                )
+            )
             print(np.concatenate([bfs_shuffled, bfs_experiment]))
             tpr_shuffled, fpr_shuffled, thresholds_shuffled = roc_curve(
                 y_true=np.concatenate(
@@ -157,7 +186,9 @@ if __name__ == "__main__":
                 y_score=np.concatenate([bfs_shuffled, bfs_experiment]),
             )
 
-            np.save("../out/cai/bfs_experiment_p{}.npy".format(data_dim), bfs_experiment)
+            np.save(
+                "../out/cai/bfs_experiment_p{}.npy".format(data_dim), bfs_experiment
+            )
             np.save("../out/cai/bfs_shuffled_p{}.npy".format(data_dim), bfs_shuffled)
 
             auc = roc_auc_score(

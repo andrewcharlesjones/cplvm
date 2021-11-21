@@ -35,7 +35,7 @@ matplotlib.rcParams["text.usetex"] = True
 if __name__ == "__main__":
 
     N_REPEATS = 10
-    
+
     gamma_range = np.linspace(0, 0.99, 10)
     sil_scores_cpca = np.empty((N_REPEATS, len(gamma_range)))
 
@@ -96,7 +96,6 @@ if __name__ == "__main__":
     plt.tight_layout()
     plt.show()
 
+    import ipdb
 
-    import ipdb; ipdb.set_trace()
-
-        
+    ipdb.set_trace()

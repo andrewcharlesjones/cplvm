@@ -45,7 +45,7 @@ for ii, p in enumerate(p_list):
     cai_df = pd.DataFrame({"TPR": tpr_shuffled, "FPR": fpr_shuffled})
     # cai_df['method'] = "Cai et al., 2013"
     # cai_df['method'] = "Cai"
-    cai_df['method'] = r"$\emph{Cai}$"
+    cai_df["method"] = r"$\emph{Cai}$"
 
     # plt.plot(tpr_shuffled, fpr_shuffled, label="Cai et al., 2013")
 
@@ -65,17 +65,22 @@ for ii, p in enumerate(p_list):
     )
     # plt.plot(tpr_shuffled, fpr_shuffled, label="CPLVM", linestyle="--")
     cplvm_df = pd.DataFrame({"TPR": tpr_shuffled, "FPR": fpr_shuffled})
-    cplvm_df['method'] = "CPLVM"
+    cplvm_df["method"] = "CPLVM"
 
     ######## Johnstone ##########
     johnstone_stats_experiment = np.load(
         "../out/johnstone/test_stats_experiment_p{}.npy".format(p)
     )
-    johnstone_stats_null = np.load("../out/johnstone/test_stats_shuffled_p{}.npy".format(p))
+    johnstone_stats_null = np.load(
+        "../out/johnstone/test_stats_shuffled_p{}.npy".format(p)
+    )
 
     tpr_shuffled, fpr_shuffled, thresholds_shuffled = roc_curve(
         y_true=np.concatenate(
-            [np.zeros(len(johnstone_stats_null)), np.ones(len(johnstone_stats_experiment))]
+            [
+                np.zeros(len(johnstone_stats_null)),
+                np.ones(len(johnstone_stats_experiment)),
+            ]
         ),
         y_score=np.concatenate([johnstone_stats_null, johnstone_stats_experiment]),
     )
@@ -83,8 +88,7 @@ for ii, p in enumerate(p_list):
     johnstone_df = pd.DataFrame({"TPR": tpr_shuffled, "FPR": fpr_shuffled})
     # johnstone_df['method'] = "Johnstone, 2008"
     # johnstone_df['method'] = "Johnstone"
-    johnstone_df['method'] = r"$\emph{Johnstone}$"
-
+    johnstone_df["method"] = r"$\emph{Johnstone}$"
 
     ######## sLED ##########
     sled_stats_experiment = np.load(
@@ -102,8 +106,7 @@ for ii, p in enumerate(p_list):
     sled_df = pd.DataFrame({"TPR": tpr_shuffled, "FPR": fpr_shuffled})
     # sled_df['method'] = "Zhu et al., 2017"
     # sled_df['method'] = "Zhu"
-    sled_df['method'] = r"$\emph{Zhu}$"
-    
+    sled_df["method"] = r"$\emph{Zhu}$"
 
     # plt.legend(prop={"size": 20})
     # plt.xlabel("TPR")
@@ -112,15 +115,17 @@ for ii, p in enumerate(p_list):
 
     plot_df = pd.concat([cai_df, cplvm_df, johnstone_df, sled_df], axis=0)
     # g = sns.lineplot(data=plot_df, x="TPR", y="FPR", style="method", color="black", ci=95, err_style="band")
-    g = sns.lineplot(data=plot_df, x="TPR", y="FPR", hue="method", ci=95, err_style="band")
+    g = sns.lineplot(
+        data=plot_df, x="TPR", y="FPR", hue="method", ci=95, err_style="band"
+    )
     g.legend_.set_title(None)
     plt.legend(prop={"size": 20})
-
 
     # import ipdb; ipdb.set_trace()
 
     plt.tight_layout()
 plt.savefig("../out/roc_comparison.png")
 plt.show()
-import ipdb; ipdb.set_trace()
+import ipdb
 
+ipdb.set_trace()

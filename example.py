@@ -21,9 +21,17 @@ p = X.shape[1]
 # Plot the data
 plt.figure(figsize=(12, 7))
 plt.scatter(X[:, 0], X[:, 1], label="Background", color="gray", alpha=0.4)
-plt.scatter(Y[:m//2, 0], Y[:m//2, 1], label="Foreground group 1", color="green", alpha=0.4)
-plt.scatter(Y[m//2:, 0], Y[m//2:, 1], label="Foreground group 2", color="orange", alpha=0.4)
-plt.legend(bbox_to_anchor=(1.2,1.05), fontsize=20)
+plt.scatter(
+    Y[: m // 2, 0], Y[: m // 2, 1], label="Foreground group 1", color="green", alpha=0.4
+)
+plt.scatter(
+    Y[m // 2 :, 0],
+    Y[m // 2 :, 1],
+    label="Foreground group 2",
+    color="orange",
+    alpha=0.4,
+)
+plt.legend(bbox_to_anchor=(1.2, 1.05), fontsize=20)
 plt.xlabel("Gene 1")
 plt.ylabel("Gene 2")
 plt.title("Toy data")
@@ -33,29 +41,42 @@ plt.savefig("./experiments/simulation_experiments/toy_example/out/toy_data.png")
 plt.close()
 
 
-
 ############ Fit CPLVM ############
 
-# Fit model
-cplvm = CPLVM(k_shared=1, k_foreground=2, compute_size_factors=True, offset_term=False)
+# Set up CPLVM
+cplvm = CPLVM(
+    k_shared=1,
+    k_foreground=2,
+    compute_size_factors=True,
+    offset_term=False)
+
+# Set up approximate model
 approx_model = CPLVMLogNormalApprox(
-    X.T, Y.T, k_shared=1, k_foreground=2, compute_size_factors=True, offset_term=False
+    X.T, 
+    Y.T, 
+    k_shared=1, 
+    k_foreground=2, 
+    compute_size_factors=True, 
+    offset_term=False
 )
 
-model_dict = cplvm.fit_model_vi(
+# Fit model
+model_output = cplvm.fit_model_vi(
     X.T,
     Y.T,
     approximate_model=approx_model,
 )
 
 ## Extract parameters
-W_mean = model_dict["approximate_model"].qw_mean.numpy()
-W_stddev = model_dict["approximate_model"].qw_stddv.numpy()
 
-S_mean = model_dict["approximate_model"].qs_mean.numpy()
-S_stddev = model_dict["approximate_model"].qs_stddv.numpy()
-
+# Foreground-specific loadings
+W_mean = model_output["approximate_model"].qw_mean.numpy()
+W_stddev = model_output["approximate_model"].qw_stddv.numpy()
 W = np.exp(W_mean + W_stddev ** 2)
+
+# Shared loadings
+S_mean = model_output["approximate_model"].qs_mean.numpy()
+S_stddev = model_output["approximate_model"].qs_stddv.numpy()
 S = np.exp(S_mean + S_stddev ** 2)
 
 
@@ -66,8 +87,16 @@ plt.figure(figsize=(12, 7))
 
 # Plot data
 plt.scatter(X[:, 0], X[:, 1], label="Background", color="gray", alpha=0.4)
-plt.scatter(Y[:m//2, 0], Y[:m//2, 1], label="Foreground group 1", color="green", alpha=0.4)
-plt.scatter(Y[m//2:, 0], Y[m//2:, 1], label="Foreground group 2", color="orange", alpha=0.4)
+plt.scatter(
+    Y[: m // 2, 0], Y[: m // 2, 1], label="Foreground group 1", color="green", alpha=0.4
+)
+plt.scatter(
+    Y[m // 2 :, 0],
+    Y[m // 2 :, 1],
+    label="Foreground group 2",
+    color="orange",
+    alpha=0.4,
+)
 
 axes = plt.gca()
 xlims = np.array(axes.get_xlim())
@@ -103,7 +132,7 @@ plt.xlim(xlims)
 plt.ylim(ylims)
 
 
-plt.legend(bbox_to_anchor=(1.2,1.05), fontsize=20)
+plt.legend(bbox_to_anchor=(1.2, 1.05), fontsize=20)
 
 plt.xlabel("Gene 1")
 plt.ylabel("Gene 2")

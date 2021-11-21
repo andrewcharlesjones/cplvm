@@ -24,7 +24,14 @@ LEARNING_RATE_VI = 1e-2
 
 
 class CPLVM(ContrastiveModel):
-    def __init__(self, k_shared, k_foreground, is_H0=False, offset_term=True, compute_size_factors=True):
+    def __init__(
+        self,
+        k_shared,
+        k_foreground,
+        is_H0=False,
+        offset_term=True,
+        compute_size_factors=True,
+    ):
 
         super().__init__(k_shared, k_foreground)
         self.compute_size_factors = compute_size_factors
@@ -53,14 +60,17 @@ class CPLVM(ContrastiveModel):
 
         if self.compute_size_factors:
             size_factor_x = yield tfd.LogNormal(
-                loc=np.mean(np.log(counts_per_cell_X + 1)) * tf.ones([1, num_datapoints_x]),
-                scale=np.std(np.log(counts_per_cell_X + 1)) * tf.ones([1, num_datapoints_x]),
+                loc=np.mean(np.log(counts_per_cell_X + 1))
+                * tf.ones([1, num_datapoints_x]),
+                scale=np.std(np.log(counts_per_cell_X + 1))
+                * tf.ones([1, num_datapoints_x]),
                 name="size_factor_x",
             )
 
             size_factor_y = yield tfd.LogNormal(
                 loc=np.mean(np.log(counts_per_cell_Y)) * tf.ones([1, num_datapoints_y]),
-                scale=np.std(np.log(counts_per_cell_Y)) * tf.ones([1, num_datapoints_y]),
+                scale=np.std(np.log(counts_per_cell_Y))
+                * tf.ones([1, num_datapoints_y]),
                 name="size_factor_y",
             )
         else:
@@ -97,9 +107,7 @@ class CPLVM(ContrastiveModel):
             )
 
             y = yield tfd.Poisson(
-                rate=tf.math.multiply(
-                    tf.matmul(s, zy), size_factor_y
-                ),
+                rate=tf.math.multiply(tf.matmul(s, zy), size_factor_y),
                 name="y",
             )
 
@@ -152,10 +160,14 @@ class CPLVM(ContrastiveModel):
         num_datapoints_x, num_datapoints_y = X.shape[1], Y.shape[1]
 
         if self.compute_size_factors != approximate_model.compute_size_factors:
-            raise Exception("Model and approximate model must have same size factor specification.")
+            raise Exception(
+                "Model and approximate model must have same size factor specification."
+            )
 
         if self.offset_term != approximate_model.offset_term:
-            raise Exception("Model and approximate model must have same offset term specification.")
+            raise Exception(
+                "Model and approximate model must have same offset term specification."
+            )
 
         if self.compute_size_factors:
             counts_per_cell_X = np.sum(X, axis=0)
@@ -208,32 +220,40 @@ class CPLVM(ContrastiveModel):
                         deltax, size_factor_x, size_factor_y, s, zx, zy, w, ty
                     ):
                         return model.log_prob(
-                            (deltax, size_factor_x, size_factor_y, s, zx, zy, w, ty, X, Y)
+                            (
+                                deltax,
+                                size_factor_x,
+                                size_factor_y,
+                                s,
+                                zx,
+                                zy,
+                                w,
+                                ty,
+                                X,
+                                Y,
+                            )
                         )
 
                 else:
 
-                    def target_log_prob_fn(
-                        deltax, s, zx, zy, w, ty
-                    ):
-                        return model.log_prob(
-                            (deltax, s, zx, zy, w, ty, X, Y)
-                        )
-
-
+                    def target_log_prob_fn(deltax, s, zx, zy, w, ty):
+                        return model.log_prob((deltax, s, zx, zy, w, ty, X, Y))
 
             else:
 
                 if self.compute_size_factors:
-                    def target_log_prob_fn(size_factor_x, size_factor_y, s, zx, zy, w, ty):
+
+                    def target_log_prob_fn(
+                        size_factor_x, size_factor_y, s, zx, zy, w, ty
+                    ):
                         return model.log_prob(
                             (size_factor_x, size_factor_y, s, zx, zy, w, ty, X, Y)
                         )
+
                 else:
+
                     def target_log_prob_fn(s, zx, zy, w, ty):
-                        return model.log_prob(
-                            (s, zx, zy, w, ty, X, Y)
-                        )
+                        return model.log_prob((s, zx, zy, w, ty, X, Y))
 
         # --------- Fit variational inference model using MC samples and gradient descent ----------
 
@@ -244,10 +264,7 @@ class CPLVM(ContrastiveModel):
             num_steps=n_epochs,
         )
 
-        return_dict = {
-            "loss_trace": losses,
-            "approximate_model": approximate_model
-        }
+        return_dict = {"loss_trace": losses, "approximate_model": approximate_model}
 
         return return_dict
 
@@ -324,7 +341,6 @@ class CPLVM(ContrastiveModel):
                         (size_factor_x, size_factor_y, s, zx, zy, w, ty, X, Y)
                     )
 
-
         mu_x = tf.Variable(tf.random.normal([data_dim, 1]))
         mu_y = tf.Variable(tf.random.normal([data_dim, 1]))
         s = tf.Variable(tf.random.normal([data_dim, self._k_shared]))
@@ -350,7 +366,7 @@ class CPLVM(ContrastiveModel):
                 "qzy_mean": approximate_model.qzy_mean,
                 "qs_stddv": approximate_model.qs_stddv,
                 "qzx_stddv": approximate_model.qzx_stddv,
-                "qzy_stddv": approximate_model.qzy_stddv
+                "qzy_stddv": approximate_model.qzy_stddv,
             }
         else:
             return_dict = {
@@ -364,10 +380,7 @@ class CPLVM(ContrastiveModel):
                 "qzx_stddv": approximate_model.qzx_stddv,
                 "qzy_stddv": approximate_model.qzy_stddv,
                 "qty_stddv": approximate_model.qty_stddv,
-                "qw_stddv": approximate_model.qw_stddv
+                "qw_stddv": approximate_model.qw_stddv,
             }
 
         return return_dict
-
-
-        

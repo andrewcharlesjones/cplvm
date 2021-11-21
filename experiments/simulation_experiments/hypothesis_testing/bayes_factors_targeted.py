@@ -51,7 +51,7 @@ if __name__ == "__main__":
     gene_set_size = 25
     gene_set_indices = [
         np.arange(ii, ii + gene_set_size)
-        for ii in np.arange(0, data_dim//2, gene_set_size)
+        for ii in np.arange(0, data_dim // 2, gene_set_size)
     ]
     stimulated_gene_set_idx = gene_set_indices[0]
     unstimulated_gene_set_idx = np.setdiff1d(
@@ -66,18 +66,22 @@ if __name__ == "__main__":
     for _ in range(NUM_REPEATS):
 
         # Generate data
-        cplvm_for_data = CPLVM(k_shared=latent_dim_shared, k_foreground=latent_dim_foreground, compute_size_factors=True)
+        cplvm_for_data = CPLVM(
+            k_shared=latent_dim_shared,
+            k_foreground=latent_dim_foreground,
+            compute_size_factors=True,
+        )
 
         concrete_clvm_model = functools.partial(
             cplvm_for_data.model,
             data_dim=data_dim,
             num_datapoints_x=num_datapoints_x,
             num_datapoints_y=num_datapoints_y,
-            counts_per_cell_X=1.,
-            counts_per_cell_Y=1.,
+            counts_per_cell_X=1.0,
+            counts_per_cell_Y=1.0,
             is_H0=False,
             num_test_genes=data_dim - stimulated_gene_set_idx.shape[0],
-            offset_term=False
+            offset_term=False,
         )
 
         model = tfd.JointDistributionCoroutineAutoBatched(concrete_clvm_model)
@@ -87,73 +91,72 @@ if __name__ == "__main__":
 
         X, Y = X_sampled.numpy(), Y_sampled.numpy()
         # import ipdb; ipdb.set_trace()
-        
 
-    #     shuffled_bfs = []
-    #     for ii in range(NUM_SHUFFLE_REPEATS):
+        #     shuffled_bfs = []
+        #     for ii in range(NUM_SHUFFLE_REPEATS):
 
-    #         # Pick random genes to be in the gene set
-    #         in_set_idx = np.random.choice(a=np.arange(data_dim), size=gene_set_size)
+        #         # Pick random genes to be in the gene set
+        #         in_set_idx = np.random.choice(a=np.arange(data_dim), size=gene_set_size)
 
-    #         num_test_genes = in_set_idx.shape[0]
-    #         out_set_idx = np.setdiff1d(np.arange(data_dim), in_set_idx)
+        #         num_test_genes = in_set_idx.shape[0]
+        #         out_set_idx = np.setdiff1d(np.arange(data_dim), in_set_idx)
 
-    #         curr_X = np.concatenate([X[out_set_idx, :], X[in_set_idx, :]])
-    #         curr_Y = np.concatenate([Y[out_set_idx, :], Y[in_set_idx, :]])
+        #         curr_X = np.concatenate([X[out_set_idx, :], X[in_set_idx, :]])
+        #         curr_Y = np.concatenate([Y[out_set_idx, :], Y[in_set_idx, :]])
 
-    #         cplvm = CPLVM(
-    #             k_shared=latent_dim_shared, k_foreground=latent_dim_foreground
-    #         )
-    #         approx_model = CPLVMLogNormalApprox(
-    #             X, Y, latent_dim_shared, latent_dim_foreground, is_H0=False, num_test_genes=0, offset_term=True
-    #         )
+        #         cplvm = CPLVM(
+        #             k_shared=latent_dim_shared, k_foreground=latent_dim_foreground
+        #         )
+        #         approx_model = CPLVMLogNormalApprox(
+        #             X, Y, latent_dim_shared, latent_dim_foreground, is_H0=False, num_test_genes=0, offset_term=True
+        #         )
 
-    #         H1_results = cplvm._fit_model_vi(
-    #             X, Y, approx_model, compute_size_factors=True, is_H0=False, num_test_genes=0, offset_term=True
-    #         )
+        #         H1_results = cplvm._fit_model_vi(
+        #             X, Y, approx_model, compute_size_factors=True, is_H0=False, num_test_genes=0, offset_term=True
+        #         )
 
-    #         # H1_results = fit_clvm(
-    #         #     curr_X,
-    #         #     curr_Y,
-    #         #     latent_dim_shared,
-    #         #     latent_dim_target,
-    #         #     compute_size_factors=True,
-    #         #     is_H0=False,
-    #         #     num_test_genes=0,
-    #         # )
+        #         # H1_results = fit_clvm(
+        #         #     curr_X,
+        #         #     curr_Y,
+        #         #     latent_dim_shared,
+        #         #     latent_dim_target,
+        #         #     compute_size_factors=True,
+        #         #     is_H0=False,
+        #         #     num_test_genes=0,
+        #         # )
 
-    #         cplvm = CPLVM(
-    #             k_shared=latent_dim_shared, k_foreground=latent_dim_foreground
-    #         )
-    #         approx_model = CPLVMLogNormalApprox(
-    #             X, Y, latent_dim_shared, latent_dim_foreground, is_H0=False, num_test_genes=in_set_idx.shape[0], offset_term=True
-    #         )
+        #         cplvm = CPLVM(
+        #             k_shared=latent_dim_shared, k_foreground=latent_dim_foreground
+        #         )
+        #         approx_model = CPLVMLogNormalApprox(
+        #             X, Y, latent_dim_shared, latent_dim_foreground, is_H0=False, num_test_genes=in_set_idx.shape[0], offset_term=True
+        #         )
 
-    #         H0_results = cplvm._fit_model_vi(
-    #             X, Y, approx_model, compute_size_factors=True, is_H0=False, num_test_genes=in_set_idx.shape[0], offset_term=True
-    #         )
+        #         H0_results = cplvm._fit_model_vi(
+        #             X, Y, approx_model, compute_size_factors=True, is_H0=False, num_test_genes=in_set_idx.shape[0], offset_term=True
+        #         )
 
-    #         # H0_results = fit_clvm(
-    #         #     curr_X,
-    #         #     curr_Y,
-    #         #     latent_dim_shared,
-    #         #     latent_dim_target,
-    #         #     compute_size_factors=True,
-    #         #     is_H0=False,
-    #         #     num_test_genes=in_set_idx.shape[0],
-    #         # )
+        #         # H0_results = fit_clvm(
+        #         #     curr_X,
+        #         #     curr_Y,
+        #         #     latent_dim_shared,
+        #         #     latent_dim_target,
+        #         #     compute_size_factors=True,
+        #         #     is_H0=False,
+        #         #     num_test_genes=in_set_idx.shape[0],
+        #         # )
 
-    #         H1_elbo = (
-    #             -1 * H1_results["loss_trace"][-1].numpy() / (X.shape[1] + Y.shape[1])
-    #         )
-    #         H0_elbo = (
-    #             -1 * H0_results["loss_trace"][-1].numpy() / (X.shape[1] + Y.shape[1])
-    #         )
+        #         H1_elbo = (
+        #             -1 * H1_results["loss_trace"][-1].numpy() / (X.shape[1] + Y.shape[1])
+        #         )
+        #         H0_elbo = (
+        #             -1 * H0_results["loss_trace"][-1].numpy() / (X.shape[1] + Y.shape[1])
+        #         )
 
-    #         curr_shuffle_bf = H1_elbo - H0_elbo
+        #         curr_shuffle_bf = H1_elbo - H0_elbo
 
-    #         print("BF for shuffled sets: {}".format(curr_shuffle_bf))
-    #         shuffled_bfs.append(curr_shuffle_bf)
+        #         print("BF for shuffled sets: {}".format(curr_shuffle_bf))
+        #         shuffled_bfs.append(curr_shuffle_bf)
 
         gene_set_bfs = []
         for ii, in_set_idx in enumerate(gene_set_indices):
@@ -172,28 +175,55 @@ if __name__ == "__main__":
             # import ipdb; ipdb.set_trace()
 
             cplvm = CPLVM(
-                k_shared=latent_dim_shared, k_foreground=latent_dim_foreground, compute_size_factors=True
+                k_shared=latent_dim_shared,
+                k_foreground=latent_dim_foreground,
+                compute_size_factors=True,
             )
             approx_model = CPLVMLogNormalApprox(
-                X, Y, latent_dim_shared, latent_dim_foreground, is_H0=False, num_test_genes=0, offset_term=True, compute_size_factors=True
+                X,
+                Y,
+                latent_dim_shared,
+                latent_dim_foreground,
+                is_H0=False,
+                num_test_genes=0,
+                offset_term=True,
+                compute_size_factors=True,
             )
 
             H1_results = cplvm._fit_model_vi(
                 X, Y, approx_model, is_H0=False, num_test_genes=0, offset_term=True
             )
-            import ipdb; ipdb.set_trace()
+            import ipdb
+
+            ipdb.set_trace()
 
             cplvm = CPLVM(
-                k_shared=latent_dim_shared, k_foreground=latent_dim_foreground, compute_size_factors=True
+                k_shared=latent_dim_shared,
+                k_foreground=latent_dim_foreground,
+                compute_size_factors=True,
             )
             approx_model = CPLVMLogNormalApprox(
-                X, Y, latent_dim_shared, latent_dim_foreground, is_H0=False, num_test_genes=in_set_idx.shape[0], offset_term=True, compute_size_factors=True
+                X,
+                Y,
+                latent_dim_shared,
+                latent_dim_foreground,
+                is_H0=False,
+                num_test_genes=in_set_idx.shape[0],
+                offset_term=True,
+                compute_size_factors=True,
             )
 
             H0_results = cplvm._fit_model_vi(
-                X, Y, approx_model, is_H0=False, num_test_genes=in_set_idx.shape[0], offset_term=True
+                X,
+                Y,
+                approx_model,
+                is_H0=False,
+                num_test_genes=in_set_idx.shape[0],
+                offset_term=True,
             )
-            import ipdb; ipdb.set_trace()
+            import ipdb
+
+            ipdb.set_trace()
 
             H1_elbo = (
                 -1 * H1_results["loss_trace"][-1].numpy() / (X.shape[1] + Y.shape[1])

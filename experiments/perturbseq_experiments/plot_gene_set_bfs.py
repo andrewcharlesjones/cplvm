@@ -28,7 +28,10 @@ plt.title(gene_name.upper() + " gene set EBFs")
 plt.ylabel("log(EBF)")
 
 
-plt.xticks(np.arange(len(treatment_bfs_to_plot)), labels=gene_sets_for_plot[:len(treatment_bfs)][sorted_idx])
+plt.xticks(
+    np.arange(len(treatment_bfs_to_plot)),
+    labels=gene_sets_for_plot[: len(treatment_bfs)][sorted_idx],
+)
 plt.xticks(rotation=-45, size=20, ha="left")
 plt.tight_layout()
 plt.savefig("./out/{}_gene_set_bfs.png".format(gene_name))
