@@ -43,7 +43,9 @@ for ii, p in enumerate(p_list):
     )
 
     cai_df = pd.DataFrame({"TPR": tpr_shuffled, "FPR": fpr_shuffled})
-    cai_df['method'] = "Cai et al., 2013"
+    # cai_df['method'] = "Cai et al., 2013"
+    # cai_df['method'] = "Cai"
+    cai_df['method'] = r"$\emph{Cai}$"
 
     # plt.plot(tpr_shuffled, fpr_shuffled, label="Cai et al., 2013")
 
@@ -79,7 +81,9 @@ for ii, p in enumerate(p_list):
     )
     # plt.plot(tpr_shuffled, fpr_shuffled, label="Johnstone")
     johnstone_df = pd.DataFrame({"TPR": tpr_shuffled, "FPR": fpr_shuffled})
-    johnstone_df['method'] = "Johnstone 2008"
+    # johnstone_df['method'] = "Johnstone, 2008"
+    # johnstone_df['method'] = "Johnstone"
+    johnstone_df['method'] = r"$\emph{Johnstone}$"
 
 
     ######## sLED ##########
@@ -96,7 +100,9 @@ for ii, p in enumerate(p_list):
     )
     # plt.plot(tpr_shuffled, fpr_shuffled, label="sLED")
     sled_df = pd.DataFrame({"TPR": tpr_shuffled, "FPR": fpr_shuffled})
-    sled_df['method'] = "Zhu et al. 2017"
+    # sled_df['method'] = "Zhu et al., 2017"
+    # sled_df['method'] = "Zhu"
+    sled_df['method'] = r"$\emph{Zhu}$"
     
 
     # plt.legend(prop={"size": 20})
@@ -105,7 +111,8 @@ for ii, p in enumerate(p_list):
     # plt.plot([0, 1], [0, 1], "-", color="black")
 
     plot_df = pd.concat([cai_df, cplvm_df, johnstone_df, sled_df], axis=0)
-    g = sns.lineplot(data=plot_df, x="TPR", y="FPR", style="method", color="black", ci=95, err_style="band")
+    # g = sns.lineplot(data=plot_df, x="TPR", y="FPR", style="method", color="black", ci=95, err_style="band")
+    g = sns.lineplot(data=plot_df, x="TPR", y="FPR", hue="method", ci=95, err_style="band")
     g.legend_.set_title(None)
     plt.legend(prop={"size": 20})
 

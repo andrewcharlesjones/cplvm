@@ -24,9 +24,10 @@ LEARNING_RATE_VI = 0.01
 
 
 class CGLVM:
-    def __init__(self, k_shared, k_foreground):
+    def __init__(self, k_shared, k_foreground, compute_size_factors=True):
         self.k_shared = k_shared
         self.k_foreground = k_foreground
+        self.compute_size_factors = compute_size_factors
 
     def model(
         self,
@@ -46,17 +47,20 @@ class CGLVM:
             loc=tf.zeros([data_dim, 1]), scale=tf.ones([data_dim, 1]), name="mu_x"
         )
 
-        size_factor_x = yield tfd.LogNormal(
-            loc=np.mean(np.log(counts_per_cell_X)) * tf.ones([1, num_datapoints_x]),
-            scale=np.std(np.log(counts_per_cell_X)) * tf.ones([1, num_datapoints_x]),
-            name="size_factor_x",
-        )
+        if self.compute_size_factors:
+            size_factor_x = yield tfd.LogNormal(
+                loc=np.mean(np.log(counts_per_cell_X)) * tf.ones([1, num_datapoints_x]),
+                scale=np.std(np.log(counts_per_cell_X)) * tf.ones([1, num_datapoints_x]),
+                name="size_factor_x",
+            )
 
-        size_factor_y = yield tfd.LogNormal(
-            loc=np.mean(np.log(counts_per_cell_Y)) * tf.ones([1, num_datapoints_y]),
-            scale=np.std(np.log(counts_per_cell_Y)) * tf.ones([1, num_datapoints_y]),
-            name="size_factor_y",
-        )
+            size_factor_y = yield tfd.LogNormal(
+                loc=np.mean(np.log(counts_per_cell_Y)) * tf.ones([1, num_datapoints_y]),
+                scale=np.std(np.log(counts_per_cell_Y)) * tf.ones([1, num_datapoints_y]),
+                name="size_factor_y",
+            )
+        else:
+            size_factor_x, size_factor_y = 1, 1
 
         s = yield tfd.Normal(
             loc=tf.zeros([data_dim, self.k_shared]) + 0,
@@ -131,14 +135,14 @@ class CGLVM:
             )
 
     def fit_model_vi(
-        self, X, Y, approximate_model, compute_size_factors=False, is_H0=False
+        self, X, Y, approximate_model, is_H0=False
     ):
 
         assert X.shape[0] == Y.shape[0]
         data_dim = X.shape[0]
         num_datapoints_x, num_datapoints_y = X.shape[1], Y.shape[1]
 
-        if compute_size_factors:
+        if self.compute_size_factors:
             counts_per_cell_X = np.mean(X, axis=0)
             counts_per_cell_X = np.expand_dims(counts_per_cell_X, 0)
             counts_per_cell_Y = np.mean(Y, axis=0)
@@ -170,12 +174,22 @@ class CGLVM:
 
         else:
 
-            def target_log_prob_fn(
-                mu_x, mu_y, size_factor_x, size_factor_y, s, zx, zy, w, ty
-            ):
-                return model.log_prob(
-                    (mu_x, mu_y, size_factor_x, size_factor_y, s, zx, zy, w, ty, X, Y)
-                )
+            if self.compute_size_factors:
+                def target_log_prob_fn(
+                    mu_x, mu_y, size_factor_x, size_factor_y, s, zx, zy, w, ty
+                ):
+                    return model.log_prob(
+                        (mu_x, mu_y, size_factor_x, size_factor_y, s, zx, zy, w, ty, X, Y)
+                    )
+
+            else:
+
+                def target_log_prob_fn(
+                    mu_x, mu_y, s, zx, zy, w, ty
+                ):
+                    return model.log_prob(
+                        (mu_x, mu_y, s, zx, zy, w, ty, X, Y)
+                    )
 
         # --------- Fit variational inference model using MC samples and gradient descent ----------
 

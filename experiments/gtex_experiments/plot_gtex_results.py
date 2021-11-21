@@ -23,7 +23,7 @@ plt.subplot(121)
 
 S_comp_idx = 0
 S_sorted = S_gtex.iloc[:, S_comp_idx].sort_values(ascending=False)
-plt.scatter(np.arange(S_sorted.shape[0]), S_sorted)
+plt.scatter(np.arange(S_sorted.shape[0]), S_sorted, color="black")
 
 gene_idx = 0
 plt.text(
@@ -66,7 +66,7 @@ plt.ylabel("Loading")
 plt.subplot(122)
 W_comp_idx = 0
 W_sorted = W_gtex.iloc[:, W_comp_idx].sort_values(ascending=False)
-plt.scatter(np.arange(W_sorted.shape[0]), W_sorted)
+plt.scatter(np.arange(W_sorted.shape[0]), W_sorted, color="black")
 
 gene_idx = 0
 plt.text(
@@ -106,4 +106,5 @@ plt.ylabel("Loading")
 
 plt.tight_layout()
 plt.savefig("./out/gtex_heart_scatter.png")
+plt.show()
 # import ipdb; ipdb.set_trace()

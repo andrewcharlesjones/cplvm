@@ -19,7 +19,7 @@ plt.figure(figsize=(10, 7))
 
 sorted_idx = np.argsort(-np.array(treatment_bfs))[:NUM_SETS_TO_PLOT]
 treatment_bfs_to_plot = np.array(treatment_bfs)[sorted_idx]
-plt.bar(np.arange(len(treatment_bfs_to_plot)), treatment_bfs_to_plot)
+plt.bar(np.arange(len(treatment_bfs_to_plot)), treatment_bfs_to_plot, color="black")
 plt.title("Nutlin gene set EBFs")
 plt.ylabel("log(EBF)")
 
@@ -32,5 +32,5 @@ plt.xticks(rotation=-45, size=20, ha="left")
 plt.tight_layout()
 plt.savefig("./out/nutlin_gene_sets.png")
 # plt.close()
-# plt.show()
+plt.show()
 # import ipdb; ipdb.set_trace()

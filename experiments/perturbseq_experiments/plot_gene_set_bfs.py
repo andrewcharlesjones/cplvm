@@ -19,21 +19,24 @@ gene_sets_for_plot = np.load("./out/geneset_names_{}.npy".format(gene_name))
 gene_sets = pd.read_csv("./hallmark_genesets.csv", index_col=0)
 
 
-# plt.figure(figsize=(10, 7))
+plt.figure(figsize=(10, 7))
 
-# sorted_idx = np.argsort(-np.array(treatment_bfs))[:NUM_SETS_TO_PLOT]
-# treatment_bfs_to_plot = np.array(treatment_bfs)[sorted_idx]
-# plt.bar(np.arange(len(treatment_bfs_to_plot)), treatment_bfs_to_plot)
-# plt.title(gene_name.upper() + " gene set EBFs")
-# plt.ylabel("log(EBF)")
+sorted_idx = np.argsort(-np.array(treatment_bfs))[:NUM_SETS_TO_PLOT]
+treatment_bfs_to_plot = np.array(treatment_bfs)[sorted_idx]
+plt.bar(np.arange(len(treatment_bfs_to_plot)), treatment_bfs_to_plot, color="black")
+plt.title(gene_name.upper() + " gene set EBFs")
+plt.ylabel("log(EBF)")
 
 
-# plt.xticks(np.arange(len(treatment_bfs_to_plot)), labels=gene_sets_for_plot[:len(treatment_bfs)][sorted_idx])
-# plt.xticks(rotation=-45, size=20, ha="left")
-# plt.tight_layout()
-# plt.savefig("./out/{}_gene_set_bfs.png".format(gene_name))
-# plt.close()
+plt.xticks(np.arange(len(treatment_bfs_to_plot)), labels=gene_sets_for_plot[:len(treatment_bfs)][sorted_idx])
+plt.xticks(rotation=-45, size=20, ha="left")
+plt.tight_layout()
+plt.savefig("./out/{}_gene_set_bfs.png".format(gene_name))
+plt.show()
+plt.close()
+import ipdb
 
+ipdb.set_trace()
 
 ### Plot size of each gene set by their enrichments
 gene_sets["set_size"] = [len(x) for x in gene_sets.genes]

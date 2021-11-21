@@ -77,7 +77,7 @@ if __name__ == "__main__":
                 X, Y, latent_dim_shared, latent_dim_foreground
             )
             model_fit = cplvm._fit_model_vi(
-                X, Y, approx_model, compute_size_factors=True, is_H0=False
+                X, Y, approx_model, is_H0=False
             )
 
             t1 = time.time()
@@ -85,7 +85,6 @@ if __name__ == "__main__":
             curr_time = t1 - t0
 
             times_cplvm[jj, ii] = curr_time
-
 
             ##### CLVM (gaussian model) #####
             t0 = time.time()

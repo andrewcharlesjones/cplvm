@@ -16,7 +16,7 @@ from cplvm.approximations.approx_model import ApproximateModel
 
 
 class CGLVMMFGaussianApprox(ApproximateModel):
-    def __init__(self, X, Y, k_shared, k_foreground, num_test_genes=0, is_H0=False):
+    def __init__(self, X, Y, k_shared, k_foreground, num_test_genes=0, is_H0=False, compute_size_factors=True):
 
         self.data_dim, self.num_datapoints_x = X.shape
         self.num_datapoints_y = Y.shape[1]
@@ -35,19 +35,20 @@ class CGLVMMFGaussianApprox(ApproximateModel):
             1e-4 * tf.ones([self.data_dim, 1]), bijector=tfb.Softplus()
         )
 
-        self.qsize_factor_x_mean = tf.Variable(
-            tf.random.normal([1, self.num_datapoints_x])
-        )
-        self.qsize_factor_x_stddv = tfp.util.TransformedVariable(
-            1e-4 * tf.ones([1, self.num_datapoints_x]), bijector=tfb.Softplus()
-        )
+        if compute_size_factors:
+            self.qsize_factor_x_mean = tf.Variable(
+                tf.random.normal([1, self.num_datapoints_x])
+            )
+            self.qsize_factor_x_stddv = tfp.util.TransformedVariable(
+                1e-4 * tf.ones([1, self.num_datapoints_x]), bijector=tfb.Softplus()
+            )
 
-        self.qsize_factor_y_mean = tf.Variable(
-            tf.random.normal([1, self.num_datapoints_y])
-        )
-        self.qsize_factor_y_stddv = tfp.util.TransformedVariable(
-            1e-4 * tf.ones([1, self.num_datapoints_y]), bijector=tfb.Softplus()
-        )
+            self.qsize_factor_y_mean = tf.Variable(
+                tf.random.normal([1, self.num_datapoints_y])
+            )
+            self.qsize_factor_y_stddv = tfp.util.TransformedVariable(
+                1e-4 * tf.ones([1, self.num_datapoints_y]), bijector=tfb.Softplus()
+            )
 
         # S
         self.qs_mean = tf.Variable(tf.random.normal([self.data_dim, self._k_shared]))
@@ -90,17 +91,20 @@ class CGLVMMFGaussianApprox(ApproximateModel):
             qmu_y = yield tfd.Normal(
                 loc=self.qmu_y_mean, scale=self.qmu_y_stddv, name="qmu_y"
             )
-            qsize_factor_x = yield tfd.LogNormal(
-                loc=self.qsize_factor_x_mean,
-                scale=self.qsize_factor_x_stddv,
-                name="qsize_factor_x",
-            )
 
-            qsize_factor_y = yield tfd.LogNormal(
-                loc=self.qsize_factor_y_mean,
-                scale=self.qsize_factor_y_stddv,
-                name="qsize_factor_y",
-            )
+            if compute_size_factors:
+                qsize_factor_x = yield tfd.LogNormal(
+                    loc=self.qsize_factor_x_mean,
+                    scale=self.qsize_factor_x_stddv,
+                    name="qsize_factor_x",
+                )
+
+                qsize_factor_y = yield tfd.LogNormal(
+                    loc=self.qsize_factor_y_mean,
+                    scale=self.qsize_factor_y_stddv,
+                    name="qsize_factor_y",
+                )
+                
             qs = yield tfd.Normal(loc=self.qs_mean, scale=self.qs_stddv, name="qs")
             qzx = yield tfd.Normal(loc=self.qzx_mean, scale=self.qzx_stddv, name="qzx")
             qzy = yield tfd.Normal(loc=self.qzy_mean, scale=self.qzy_stddv, name="qzy")

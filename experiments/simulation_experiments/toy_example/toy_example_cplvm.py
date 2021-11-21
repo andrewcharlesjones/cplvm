@@ -1,4 +1,5 @@
 from cplvm import CPLVM
+from cplvm import CPLVMLogNormalApprox
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
@@ -37,117 +38,116 @@ plt.figure(figsize=(28, 7))
 
 ############ PCA ############
 
-pcpca = PCPCA(gamma=0, n_components=1)
-pcpca.fit((Y - Y.mean(0)).T, (X - X.mean(0)).T)
+# pcpca = PCPCA(gamma=0, n_components=1)
+# pcpca.fit((Y - Y.mean(0)).T, (X - X.mean(0)).T)
 
-plt.subplot(141)
-# Plot
-plt.xlim([-3, 38])
-plt.ylim([-3, 38])
-plt.scatter(X[:, 0], X[:, 1], label="Background", color="gray", alpha=0.4)
-plt.scatter(
-    Y[: m // 2, 0], Y[: m // 2, 1], label="Foreground group 1", color="green", alpha=0.4
-)
-plt.scatter(
-    Y[m // 2 :, 0],
-    Y[m // 2 :, 1],
-    label="Foreground group 2",
-    color="orange",
-    alpha=0.4,
-)
-
-
-Y_mean = np.mean(Y, axis=0)
-W_slope = pcpca.W_mle[1, 0] / pcpca.W_mle[0, 0]
-W_intercept = Y_mean[1] - Y_mean[0] * W_slope
-
-axes = plt.gca()
-xlims = np.array(axes.get_xlim())
-x_vals = np.linspace(xlims[0], xlims[1], 100)
-y_vals = W_slope * x_vals + W_intercept
-plt.plot(x_vals, y_vals, "--", label="W", color="red", linewidth=3)
-plt.xlabel("Gene 1")
-plt.ylabel("Gene 2")
-plt.legend(prop={"size": 20})
-
-plt.title("PCA")
+# plt.subplot(141)
+# # Plot
+# plt.xlim([-3, 38])
+# plt.ylim([-3, 38])
+# plt.scatter(X[:, 0], X[:, 1], label="Background", color="gray", alpha=0.4)
+# plt.scatter(
+#     Y[: m // 2, 0], Y[: m // 2, 1], label="Foreground group 1", color="green", alpha=0.4
+# )
+# plt.scatter(
+#     Y[m // 2 :, 0],
+#     Y[m // 2 :, 1],
+#     label="Foreground group 2",
+#     color="orange",
+#     alpha=0.4,
+# )
 
 
-############ CPCA ############
+# Y_mean = np.mean(Y, axis=0)
+# W_slope = pcpca.W_mle[1, 0] / pcpca.W_mle[0, 0]
+# W_intercept = Y_mean[1] - Y_mean[0] * W_slope
 
-cpca = CPCA(gamma=200, n_components=1)
-cpca.fit((Y - Y.mean(0)).T, (X - X.mean(0)).T)
+# axes = plt.gca()
+# xlims = np.array(axes.get_xlim())
+# x_vals = np.linspace(xlims[0], xlims[1], 100)
+# y_vals = W_slope * x_vals + W_intercept
+# plt.plot(x_vals, y_vals, "--", label="W", color="red", linewidth=3)
+# plt.xlabel("Gene 1")
+# plt.ylabel("Gene 2")
+# plt.legend(prop={"size": 20})
 
-plt.subplot(142)
-# Plot
-plt.xlim([-3, 38])
-plt.ylim([-3, 38])
-plt.scatter(X[:, 0], X[:, 1], label="Background", color="gray", alpha=0.4)
-plt.scatter(
-    Y[: m // 2, 0], Y[: m // 2, 1], label="Foreground group 1", color="green", alpha=0.4
-)
-plt.scatter(
-    Y[m // 2 :, 0],
-    Y[m // 2 :, 1],
-    label="Foreground group 2",
-    color="orange",
-    alpha=0.4,
-)
+# plt.title("PCA")
 
 
-Y_mean = np.mean(Y, axis=0)
-W_slope = cpca.W[1, 0] / cpca.W[0, 0]
-W_intercept = Y_mean[1] - Y_mean[0] * W_slope
+# ############ CPCA ############
 
-axes = plt.gca()
-xlims = np.array(axes.get_xlim())
-x_vals = np.linspace(xlims[0], xlims[1], 100)
-y_vals = W_slope * x_vals + W_intercept
-plt.plot(x_vals, y_vals, "--", label="W", color="red", linewidth=3)
-plt.xlabel("Gene 1")
-plt.ylabel("Gene 2")
-plt.legend(prop={"size": 20})
+# cpca = CPCA(gamma=200, n_components=1)
+# cpca.fit((Y - Y.mean(0)).T, (X - X.mean(0)).T)
 
-plt.title("CPCA")
-
-
-############ PCPCA ############
-
-pcpca = PCPCA(gamma=200, n_components=1)
-pcpca.fit((Y - Y.mean(0)).T, (X - X.mean(0)).T)
-
-plt.subplot(143)
-# Plot
-plt.xlim([-3, 38])
-plt.ylim([-3, 38])
-plt.scatter(X[:, 0], X[:, 1], label="Background", color="gray", alpha=0.4)
-plt.scatter(
-    Y[: m // 2, 0], Y[: m // 2, 1], label="Foreground group 1", color="green", alpha=0.4
-)
-plt.scatter(
-    Y[m // 2 :, 0],
-    Y[m // 2 :, 1],
-    label="Foreground group 2",
-    color="orange",
-    alpha=0.4,
-)
+# plt.subplot(142)
+# # Plot
+# plt.xlim([-3, 38])
+# plt.ylim([-3, 38])
+# plt.scatter(X[:, 0], X[:, 1], label="Background", color="gray", alpha=0.4)
+# plt.scatter(
+#     Y[: m // 2, 0], Y[: m // 2, 1], label="Foreground group 1", color="green", alpha=0.4
+# )
+# plt.scatter(
+#     Y[m // 2 :, 0],
+#     Y[m // 2 :, 1],
+#     label="Foreground group 2",
+#     color="orange",
+#     alpha=0.4,
+# )
 
 
-Y_mean = np.mean(Y, axis=0)
-W_slope = pcpca.W_mle[1, 0] / pcpca.W_mle[0, 0]
-W_intercept = Y_mean[1] - Y_mean[0] * W_slope
+# Y_mean = np.mean(Y, axis=0)
+# W_slope = cpca.W[1, 0] / cpca.W[0, 0]
+# W_intercept = Y_mean[1] - Y_mean[0] * W_slope
 
-axes = plt.gca()
-xlims = np.array(axes.get_xlim())
-x_vals = np.linspace(xlims[0], xlims[1], 100)
-y_vals = W_slope * x_vals + W_intercept
-plt.plot(x_vals, y_vals, "--", label="W", color="red", linewidth=3)
-plt.xlabel("Gene 1")
-plt.ylabel("Gene 2")
-plt.legend(prop={"size": 20})
+# axes = plt.gca()
+# xlims = np.array(axes.get_xlim())
+# x_vals = np.linspace(xlims[0], xlims[1], 100)
+# y_vals = W_slope * x_vals + W_intercept
+# plt.plot(x_vals, y_vals, "--", label="W", color="red", linewidth=3)
+# plt.xlabel("Gene 1")
+# plt.ylabel("Gene 2")
+# plt.legend(prop={"size": 20})
 
-plt.title("PCPCA")
-# plt.show()
+# plt.title("CPCA")
+
+
+# ############ PCPCA ############
+
+# pcpca = PCPCA(gamma=200, n_components=1)
+# pcpca.fit((Y - Y.mean(0)).T, (X - X.mean(0)).T)
+
+# plt.subplot(143)
+# # Plot
+# plt.xlim([-3, 38])
+# plt.ylim([-3, 38])
+# plt.scatter(X[:, 0], X[:, 1], label="Background", color="gray", alpha=0.4)
+# plt.scatter(
+#     Y[: m // 2, 0], Y[: m // 2, 1], label="Foreground group 1", color="green", alpha=0.4
+# )
+# plt.scatter(
+#     Y[m // 2 :, 0],
+#     Y[m // 2 :, 1],
+#     label="Foreground group 2",
+#     color="orange",
+#     alpha=0.4,
+# )
+
+
+# Y_mean = np.mean(Y, axis=0)
+# W_slope = pcpca.W_mle[1, 0] / pcpca.W_mle[0, 0]
+# W_intercept = Y_mean[1] - Y_mean[0] * W_slope
+
+# axes = plt.gca()
+# xlims = np.array(axes.get_xlim())
+# x_vals = np.linspace(xlims[0], xlims[1], 100)
+# y_vals = W_slope * x_vals + W_intercept
+# plt.plot(x_vals, y_vals, "--", label="W", color="red", linewidth=3)
+# plt.xlabel("Gene 1")
+# plt.ylabel("Gene 2")
+# plt.legend(prop={"size": 20})
+
+# plt.title("PCPCA")
 
 
 ############ CPLVM ############
@@ -156,12 +156,26 @@ plt.subplot(144)
 
 
 # Fit model
-cplvm = CPLVM(k_shared=2, k_foreground=1)
+cplvm = CPLVM(k_shared=2, k_foreground=1, compute_size_factors=True, offset_term=False)
+approx_model = CPLVMLogNormalApprox(
+    X.T, Y.T, k_shared=2, k_foreground=1, compute_size_factors=True, offset_term=False
+)
 
-model_dict = cplvm.fit_model_vi(X, Y, compute_size_factors=True, is_H0=False)
+model_dict = cplvm.fit_model_vi(
+    X.T,
+    Y.T,
+    approximate_model=approx_model,
+)
 
-W = np.exp(model_dict["qw_mean"].numpy() + model_dict["qw_stddv"].numpy() ** 2)
-S = np.exp(model_dict["qs_mean"].numpy() + model_dict["qs_stddv"].numpy() ** 2)
+
+W_mean = model_dict["approximate_model"].qw_mean.numpy()
+W_stddev = model_dict["approximate_model"].qw_stddv.numpy()
+
+S_mean = model_dict["approximate_model"].qs_mean.numpy()
+S_stddev = model_dict["approximate_model"].qs_stddv.numpy()
+
+W = np.exp(W_mean + W_stddev ** 2)
+S = np.exp(S_mean + S_stddev ** 2)
 
 
 # Plot
@@ -176,6 +190,16 @@ xlims = np.array(axes.get_xlim())
 x_vals = np.linspace(xlims[0], xlims[1], 100)
 y_vals = S_slope * x_vals
 plt.plot(x_vals, y_vals, "--", label="S", color="black", linewidth=3)
+
+S_slope = S[1, 1] / S[0, 1]
+S_intercept = 0
+axes = plt.gca()
+xlims = np.array(axes.get_xlim())
+x_vals = np.linspace(xlims[0], xlims[1], 100)
+y_vals = S_slope * x_vals
+plt.plot(x_vals, y_vals, "--", color="black", linewidth=3)
+
+
 
 
 # Y_mean = np.mean(Y, axis=0)
@@ -209,4 +233,8 @@ plt.savefig("./out/toy_example_cplvm.png")
 
 
 plt.show()
-# ipdb.set_trace()
+
+
+import ipdb
+
+ipdb.set_trace()

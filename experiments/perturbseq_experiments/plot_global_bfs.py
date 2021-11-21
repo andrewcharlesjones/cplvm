@@ -23,9 +23,9 @@ fig, ax = plt.subplots(figsize=(21, 5))
 
 ind = np.arange(N)  # the x locations for the groups
 width = 0.35  # the width of the bars
-p1 = ax.bar(ind, control_bfs, width, yerr=control_bf_stds)
+p1 = ax.bar(ind, control_bfs, width, yerr=control_bf_stds, color="black")
 
-p2 = ax.bar(ind + width, treatment_bfs, width)
+p2 = ax.bar(ind + width, treatment_bfs, width, color="gray")
 
 
 # ax.set_title('Scores by group and gender')

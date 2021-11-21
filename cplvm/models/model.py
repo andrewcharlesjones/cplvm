@@ -25,11 +25,11 @@ class ContrastiveModel(ABC):
         pass
 
     @abstractmethod
-    def _fit_model_vi(self):
+    def fit_model_vi(self):
         """Fit model with variational inference (VI)"""
         pass
 
     @abstractmethod
-    def _fit_model_map(self):
+    def fit_model_map(self):
         """Fit model with maximum a posteriori (MAP) inference"""
         pass

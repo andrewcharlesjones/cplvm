@@ -62,9 +62,10 @@ tpr_shuffled, fpr_shuffled, thresholds_shuffled = roc_curve(
     ),
     y_score=np.concatenate([li2012_stats_null, li2012_stats_experiment]),
 )
-plt.plot(tpr_shuffled, fpr_shuffled, label="Li 2012", linestyle="--", color="black")
+plt.plot(tpr_shuffled, fpr_shuffled, label=r"$\emph{Li}$", linestyle="--", color="black")
 li2012_df = pd.DataFrame({"TPR": tpr_shuffled, "FPR": fpr_shuffled})
-li2012_df['method'] = "Li 2012"
+# li2012_df['method'] = "Li 2012"
+li2012_df['method'] = r"$\emph{Li}$"
 
 
 

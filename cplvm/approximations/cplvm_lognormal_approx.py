@@ -33,6 +33,7 @@ class CPLVMLogNormalApprox(ApproximateModel):
         self._k_shared = k_shared
         self._k_foreground = k_foreground
         self.compute_size_factors = compute_size_factors
+        self.offset_term = offset_term
 
         if offset_term:
             # delta

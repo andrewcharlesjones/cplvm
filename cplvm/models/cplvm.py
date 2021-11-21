@@ -19,15 +19,17 @@ tf.enable_v2_behavior()
 
 warnings.filterwarnings("ignore")
 
-NUM_VI_ITERS = 2000
-LEARNING_RATE_VI = 0.05
+NUM_VI_ITERS = 5000
+LEARNING_RATE_VI = 1e-2
 
 
 class CPLVM(ContrastiveModel):
-    def __init__(self, k_shared, k_foreground, compute_size_factors=True):
+    def __init__(self, k_shared, k_foreground, is_H0=False, offset_term=True, compute_size_factors=True):
 
         super().__init__(k_shared, k_foreground)
         self.compute_size_factors = compute_size_factors
+        self.is_H0 = is_H0
+        self.offset_term = offset_term
 
     def model(
         self,
@@ -51,8 +53,8 @@ class CPLVM(ContrastiveModel):
 
         if self.compute_size_factors:
             size_factor_x = yield tfd.LogNormal(
-                loc=np.mean(np.log(counts_per_cell_X)) * tf.ones([1, num_datapoints_x]),
-                scale=np.std(np.log(counts_per_cell_X)) * tf.ones([1, num_datapoints_x]),
+                loc=np.mean(np.log(counts_per_cell_X + 1)) * tf.ones([1, num_datapoints_x]),
+                scale=np.std(np.log(counts_per_cell_X + 1)) * tf.ones([1, num_datapoints_x]),
                 name="size_factor_x",
             )
 
@@ -84,11 +86,11 @@ class CPLVM(ContrastiveModel):
         )
 
         # Null
-        if is_H0:
+        if self.is_H0:
 
             x = yield tfd.Poisson(
                 rate=tf.math.multiply(
-                    tf.math.multiply(tf.math.multiply(tf.matmul(s, zx), 1), deltax),
+                    tf.math.multiply(tf.matmul(s, zx), deltax),
                     size_factor_x,
                 ),
                 name="x",
@@ -96,7 +98,7 @@ class CPLVM(ContrastiveModel):
 
             y = yield tfd.Poisson(
                 rate=tf.math.multiply(
-                    tf.math.multiply(tf.matmul(s, zy), 1), size_factor_y
+                    tf.matmul(s, zy), size_factor_y
                 ),
                 name="y",
             )
@@ -111,15 +113,13 @@ class CPLVM(ContrastiveModel):
 
             ty = yield tfd.Gamma(
                 concentration=tf.ones([self._k_foreground, num_datapoints_y]),
-                rate=tf.math.multiply(
-                    1 * tf.ones([self._k_foreground, num_datapoints_y]), 1
-                ),
+                rate=tf.ones([self._k_foreground, num_datapoints_y]),
                 name="ty",
             )
 
             x = yield tfd.Poisson(
                 rate=tf.math.multiply(
-                    tf.math.multiply(tf.math.multiply(tf.matmul(s, zx), 1), deltax),
+                    tf.math.multiply(tf.matmul(s, zx), deltax),
                     size_factor_x,
                 ),
                 name="x",
@@ -131,33 +131,37 @@ class CPLVM(ContrastiveModel):
 
             y = yield tfd.Poisson(
                 rate=tf.math.multiply(
-                    tf.math.multiply(tf.matmul(s, zy) + tf.matmul(w, ty), 1),
+                    tf.matmul(s, zy) + tf.matmul(w, ty),
                     size_factor_y,
                 ),
                 name="y",
             )
 
-    def _fit_model_vi(
+    def fit_model_vi(
         self,
         X,
         Y,
         approximate_model,
-        is_H0=False,
         num_test_genes=0,
-        offset_term=True,
+        learning_rate=1e-2,
+        n_epochs=5000,
     ):
 
         assert X.shape[0] == Y.shape[0]
         data_dim = X.shape[0]
         num_datapoints_x, num_datapoints_y = X.shape[1], Y.shape[1]
 
+        if self.compute_size_factors != approximate_model.compute_size_factors:
+            raise Exception("Model and approximate model must have same size factor specification.")
+
+        if self.offset_term != approximate_model.offset_term:
+            raise Exception("Model and approximate model must have same offset term specification.")
+
         if self.compute_size_factors:
-            # counts_per_cell_X = np.mean(X, axis=0)
-            # counts_per_cell_X = np.expand_dims(counts_per_cell_X, 0)
-            # counts_per_cell_Y = np.mean(Y, axis=0)
-            # counts_per_cell_Y = np.expand_dims(counts_per_cell_Y, 0)
-            counts_per_cell_X = 1.0
-            counts_per_cell_Y = 1.0
+            counts_per_cell_X = np.sum(X, axis=0)
+            counts_per_cell_X = np.expand_dims(counts_per_cell_X, 0)
+            counts_per_cell_Y = np.sum(Y, axis=0)
+            counts_per_cell_Y = np.expand_dims(counts_per_cell_Y, 0)
         else:
             counts_per_cell_X = 1.0
             counts_per_cell_Y = 1.0
@@ -171,16 +175,16 @@ class CPLVM(ContrastiveModel):
             num_datapoints_y=num_datapoints_y,
             counts_per_cell_X=counts_per_cell_X,
             counts_per_cell_Y=counts_per_cell_Y,
-            is_H0=is_H0,
+            is_H0=self.is_H0,
             num_test_genes=num_test_genes,
-            offset_term=offset_term,
+            offset_term=self.offset_term,
         )
 
         model = tfd.JointDistributionCoroutineAutoBatched(concrete_clvm_model)
 
-        if is_H0:
+        if self.is_H0:
 
-            if offset_term:
+            if self.offset_term:
 
                 def target_log_prob_fn(deltax, size_factor_x, size_factor_y, s, zx, zy):
                     return model.log_prob(
@@ -196,7 +200,7 @@ class CPLVM(ContrastiveModel):
 
         else:
 
-            if offset_term:
+            if self.offset_term:
 
                 if self.compute_size_factors:
 
@@ -236,8 +240,8 @@ class CPLVM(ContrastiveModel):
         losses = tfp.vi.fit_surrogate_posterior(
             target_log_prob_fn,
             surrogate_posterior=approximate_model.approximate_posterior,
-            optimizer=tf.optimizers.Adam(learning_rate=LEARNING_RATE_VI),
-            num_steps=NUM_VI_ITERS,
+            optimizer=tf.optimizers.Adam(learning_rate=learning_rate),
+            num_steps=n_epochs,
         )
 
         return_dict = {
@@ -247,14 +251,12 @@ class CPLVM(ContrastiveModel):
 
         return return_dict
 
-    def _fit_model_map(
+    def fit_model_map(
         self,
         X,
         Y,
         compute_size_factors=True,
-        is_H0=False,
         num_test_genes=0,
-        offset_term=True,
     ):
 
         assert X.shape[0] == Y.shape[0]
@@ -281,16 +283,16 @@ class CPLVM(ContrastiveModel):
             num_datapoints_y=num_datapoints_y,
             counts_per_cell_X=counts_per_cell_X,
             counts_per_cell_Y=counts_per_cell_Y,
-            is_H0=is_H0,
+            is_H0=self.is_H0,
             num_test_genes=num_test_genes,
-            offset_term=offset_term,
+            offset_term=self.offset_term,
         )
 
         model = tfd.JointDistributionCoroutineAutoBatched(concrete_clvm_model)
 
-        if is_H0:
+        if self.is_H0:
 
-            if offset_term:
+            if self.offset_term:
 
                 def target_log_prob_fn(size_factor_x, size_factor_y, s, zx, zy):
                     return model.log_prob(
@@ -306,7 +308,7 @@ class CPLVM(ContrastiveModel):
 
         else:
 
-            if offset_term:
+            if self.offset_term:
 
                 def target_log_prob_fn(
                     deltax, size_factor_x, size_factor_y, s, zx, zy, w, ty
@@ -340,7 +342,7 @@ class CPLVM(ContrastiveModel):
             num_steps=1000,
         )
 
-        if is_H0:
+        if self.is_H0:
             return_dict = {
                 "loss_trace": approximate_model.losses,
                 "qs_mean": approximate_model.qs_mean,
@@ -367,3 +369,5 @@ class CPLVM(ContrastiveModel):
 
         return return_dict
 
+
+        
